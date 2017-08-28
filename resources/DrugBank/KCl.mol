@@ -1,0 +1,100 @@
+
+  Mrv0541 02231214592D          
+
+  2  0  0  0  0  0            999 V2000
+    0.0000    0.0000    0.0000 K   0  3  0  0  0  0  0  0  0  0  0  0
+    1.0000    0.0000    0.0000 Cl  0  5  0  0  0  0  0  0  0  0  0  0
+M  CHG  2   1   1   2  -1
+M  END
+> <DATABASE_ID>
+DB00761
+
+> <DATABASE_NAME>
+drugbank
+
+> <SMILES>
+[Cl-].[K+]
+
+> <INCHI_IDENTIFIER>
+InChI=1S/ClH.K/h1H;/q;+1/p-1
+
+> <INCHI_KEY>
+InChIKey=WCUXLLCKKVVCTQ-UHFFFAOYSA-M
+
+> <JCHEM_ACCEPTOR_COUNT>
+0
+
+> <JCHEM_AVERAGE_POLARIZABILITY>
+1.7784
+
+> <JCHEM_BIOAVAILABILITY>
+1
+
+> <JCHEM_DONOR_COUNT>
+0
+
+> <JCHEM_EXACT_MASS>
+73.932559568
+
+> <JCHEM_FORMAL_CHARGE>
+0
+
+> <JCHEM_FORMULA>
+ClK
+
+> <JCHEM_GHOSE_FILTER>
+0
+
+> <JCHEM_IUPAC>
+potassium chloride
+
+> <JCHEM_LOGP>
+0.2
+
+> <JCHEM_MASS>
+74.551
+
+> <JCHEM_MDDR_LIKE_RULE>
+0
+
+> <JCHEM_NUMBER_OF_RINGS>
+0
+
+> <JCHEM_PHYSIOLOGICAL_CHARGE>
+-1
+
+> <JCHEM_PKA_STRONGEST_ACIDIC>
+-7.000000000000001
+
+> <JCHEM_POLAR_SURFACE_AREA>
+0
+
+> <JCHEM_REFRACTIVITY>
+0
+
+> <JCHEM_ROTATABLE_BOND_COUNT>
+0
+
+> <JCHEM_RULE_OF_FIVE>
+1
+
+> <JCHEM_TRADITIONAL_IUPAC>
+potassium chloride
+
+> <JCHEM_VEBER_RULE>
+1
+
+> <DRUGBANK_ID>
+DB00761
+
+> <DRUG_GROUPS>
+approved; withdrawn
+
+> <GENERIC_NAME>
+Potassium Chloride
+
+> <SYNONYMS>
+Chlorid draselny; Chloride of potash; Kaliumchlorid; Monopotassium chloride; Muriate of potash; Sylvite
+
+> <BRANDS>
+K-Dur; K-Tab; Kaon Cl; Klor-Con; Klotrix; Micro-K; Sando-K; Slow-K

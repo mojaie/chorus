@@ -1,0 +1,123 @@
+
+  Mrv0541 02231214362D          
+
+ 13 12  0  0  0  0            999 V2000
+    0.0000   -1.6500    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
+    0.7145    0.4125    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000   -0.8250    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.7145    0.4125    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    1.4289    0.8250    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
+   -1.4289    0.8250    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 Fe  0  6  0  0  0  0  0  0  0  0  0  0
+    0.7145   -0.4125    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    1.4289   -0.8250    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.7145   -0.4125    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+   -1.4289   -0.8250    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.8250    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    1.6500    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+  1  3  3  0  0  0  0
+  2  7  1  0  0  0  0
+  2  5  3  0  0  0  0
+  7  3  1  0  0  0  0
+  7  4  1  0  0  0  0
+  4  6  3  0  0  0  0
+  7 12  1  0  0  0  0
+  7  8  1  0  0  0  0
+  7 10  1  0  0  0  0
+  8  9  3  0  0  0  0
+ 10 11  3  0  0  0  0
+ 12 13  2  0  0  0  0
+M  CHG  1   7  -2
+M  END
+> <DATABASE_ID>
+DB00325
+
+> <DATABASE_NAME>
+drugbank
+
+> <SMILES>
+O=N[Fe--](C#N)(C#N)(C#N)(C#N)C#N
+
+> <INCHI_IDENTIFIER>
+InChI=1S/5CN.Fe.NO/c5*1-2;;1-2/q;;;;;2*-1
+
+> <INCHI_KEY>
+InChIKey=ASPOIVQEUUCDQT-UHFFFAOYSA-N
+
+> <JCHEM_ACCEPTOR_COUNT>
+6
+
+> <JCHEM_AVERAGE_POLARIZABILITY>
+16.522119235660675
+
+> <JCHEM_BIOAVAILABILITY>
+1
+
+> <JCHEM_DONOR_COUNT>
+0
+
+> <JCHEM_EXACT_MASS>
+215.948300785
+
+> <JCHEM_FORMAL_CHARGE>
+-2
+
+> <JCHEM_FORMULA>
+C5FeN6O
+
+> <JCHEM_GHOSE_FILTER>
+0
+
+> <JCHEM_IUPAC>
+pentacyano(nitroso)irondiuide
+
+> <JCHEM_LOGP>
+0.07120000000000004
+
+> <JCHEM_MASS>
+215.938
+
+> <JCHEM_MDDR_LIKE_RULE>
+0
+
+> <JCHEM_NUMBER_OF_RINGS>
+0
+
+> <JCHEM_PHYSIOLOGICAL_CHARGE>
+-2
+
+> <JCHEM_PKA_STRONGEST_BASIC>
+-3.287197304660514
+
+> <JCHEM_POLAR_SURFACE_AREA>
+148.38
+
+> <JCHEM_REFRACTIVITY>
+39.4351
+
+> <JCHEM_ROTATABLE_BOND_COUNT>
+1
+
+> <JCHEM_RULE_OF_FIVE>
+1
+
+> <JCHEM_TRADITIONAL_IUPAC>
+nitroprusside
+
+> <JCHEM_VEBER_RULE>
+0
+
+> <DRUGBANK_ID>
+DB00325
+
+> <DRUG_GROUPS>
+approved
+
+> <GENERIC_NAME>
+Nitroprusside
+
+> <BRANDS>
+Nipride; Nitropress
+
+> <SALTS>
+Sodium nitroprusside

@@ -1,0 +1,14 @@
+
+*~
+.DS_Store
+*.egg-info
+__pycache__/
+
+dist
+build
+_build
+legacy
+chorus/cython/*.so
+scripts/benchmark.py
+
+memo.txt
