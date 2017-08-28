@@ -6,7 +6,7 @@
 
 import unittest
 
-from chorus.test.ctabprovider import CTABS
+from chorus.demo import MOL
 from chorus import v2000reader as reader
 from chorus.smilessupplier import smiles_to_compound
 from chorus import wclogp
@@ -32,7 +32,7 @@ class TestWClogP(unittest.TestCase):
         # maybe typo in the original paper: calcd = 49.67, expt = 50.39
 
     def test_wctype(self):
-        mol = reader.mol_from_text(CTABS["wctype_C_alip"])
+        mol = reader.mol_from_text(MOL["wctype_C_alip"])
         wclogp.assign_wctype(mol)
         self.assertEqual(
             [a.wctype for _, a in mol.atoms_iter()],
@@ -40,21 +40,21 @@ class TestWClogP(unittest.TestCase):
              "C27", "Me1", "C27", "C27", "C27", "H1", "C6", "C26", "C21", "C21",
              "N12", "C18", "C21", "C21", "C11", "O3", "C12", "C1", "C1", "C1",
              "C9", "C10", "C1"])
-        mol = reader.mol_from_text(CTABS["wctype_C_arom"])
+        mol = reader.mol_from_text(MOL["wctype_C_arom"])
         wclogp.assign_wctype(mol)
         self.assertEqual(
             [a.wctype for _, a in mol.atoms_iter()],
             ["C21", "C23", "C22", "C24", "C19", "C19", "C14", "C20", "C25", "O1",
              "O8", "O2", "N3", "S1", "C20", "C15", "C16", "C17", "C13", "C18",
              "Cl", "Br", "I", "C8", "P", "F"])
-        mol = reader.mol_from_text(CTABS["wctype_N"])
+        mol = reader.mol_from_text(MOL["wctype_N"])
         wclogp.assign_wctype(mol)
         self.assertEqual(
             [a.wctype for _, a in mol.atoms_iter()],
             ["N11", "C21", "C22", "C18", "C22", "C22", "N4", "C4", "N8", "C4",
              "N6", "N7", "N5", "C3", "N13", "C3", "C3", "C3", "C3", "N6",
              "N10", "C7", "N9", "N14", "N14"])
-        mol = reader.mol_from_text(CTABS["wctype_OS"])
+        mol = reader.mol_from_text(MOL["wctype_OS"])
         wclogp.assign_wctype(mol)
         self.assertEqual(
             [a.wctype for _, a in mol.atoms_iter()],

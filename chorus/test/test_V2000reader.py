@@ -7,7 +7,7 @@
 import os
 import unittest
 
-from chorus.test.ctabprovider import CTABS
+from chorus.demo import MOL
 from chorus.util import debug
 import chorus.v2000reader as reader
 
@@ -36,40 +36,40 @@ class TestV2000Reader(unittest.TestCase):
         self.assertEqual(parsed, {"hoge fuga": "piyo"})
 
     def test_null(self):
-        mol = reader.mol_from_text(CTABS["null"])
+        mol = reader.mol_from_text(MOL["null"])
         self.assertTrue(len(mol.descriptors))  # descriptors assigned
         self.assertEqual(mol.atom_count(), 0)
         self.assertEqual(mol.bond_count(), 0)
 
     def test_phe(self):
-        compound = reader.mol_from_text(CTABS["Phe"])
+        compound = reader.mol_from_text(MOL["Phe"])
         self.assertEqual(compound.atom_count(), 12)
         self.assertEqual(compound.bond_count(), 12)
         self.assertEqual(compound.data['GENERIC_NAME'], 'L-Phenylalanine')
 
     def test_phe_omit(self):
         """ omitted CTAB """
-        compound = reader.mol_from_text(CTABS["Phe_omit"])
+        compound = reader.mol_from_text(MOL["Phe_omit"])
         self.assertEqual(compound.atom_count(), 12)
         self.assertEqual(compound.bond_count(), 12)
         self.assertEqual(compound.data['GENERIC_NAME'], 'L-Phenylalanine')
 
     def test_kcl(self):
         """ No bonds """
-        compound = reader.mol_from_text(CTABS["KCl"])
+        compound = reader.mol_from_text(MOL["KCl"])
         self.assertEqual(compound.atom_count(), 2)
         self.assertEqual(compound.bond_count(), 0)
 
     def test_colesevelam(self):
         """ Polymer Expression not supported yet """
         with self.assertRaises(ValueError):
-            next(reader.mols_from_text(CTABS["Colesevelam"], False))
+            next(reader.mols_from_text(MOL["Colesevelam"], False))
         with self.assertRaises(ValueError):
-            reader.mol_from_text(CTABS["Colesevelam"])
+            reader.mol_from_text(MOL["Colesevelam"])
 
     @debug.mute  # Unsupported symbol: A (#1 in v2000reader)
     def test_no_halt(self):
-        mol = next(reader.mols_from_text(CTABS["Colesevelam"]))
+        mol = next(reader.mols_from_text(MOL["Colesevelam"]))
         self.assertTrue(len(mol.descriptors))  # descriptors assigned
         self.assertEqual(mol.atom_count(), 0)
         self.assertEqual(mol.data['GENERIC_NAME'], 'Colesevelam')

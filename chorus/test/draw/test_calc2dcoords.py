@@ -8,7 +8,7 @@ import copy
 import math
 import unittest
 
-from chorus.test.ctabprovider import CTABS
+from chorus.demo import MOL
 from chorus import v2000reader as reader
 from chorus.draw.svg import SVG
 from chorus.draw import calc2dcoords
@@ -70,15 +70,15 @@ class TestCalc2DCoords(unittest.TestCase):
 
     # @unittest.skip("")
     def test_coords(self):
-        # mol = reader.mol_from_text(CTABS["Phe"])
+        # mol = reader.mol_from_text(MOL["Phe"])
         # TODO: without scaffold (Linoleic acid)
         mol = smilessupplier.smiles_to_compound("CCCCCC=CCC=CCCCCCCCC(=O)O")
-        # mol = reader.mol_from_text(CTABS["KCl"])  # TODO: overlap
-        # mol = reader.mol_from_text(CTABS["Carbidopa"])  # TODO: quart overlap
-        # mol = reader.mol_from_text(CTABS["Formestane"])  # TODO: overlap
-        # mol = reader.mol_from_text(CTABS["Ceftazidime"])  # TODO: overlap
-        # mol = reader.mol_from_text(CTABS["Daunorubicin"])  # TODO: quart overlap
-        # mol = reader.mol_from_text(CTABS["Paclitaxel"])  # TODO: overlap
-        # mol = reader.mol_from_text(CTABS["Spinosad"])  # TODO: overlap
+        # mol = reader.mol_from_text(MOL["KCl"])  # TODO: overlap
+        # mol = reader.mol_from_text(MOL["Carbidopa"])  # TODO: quart overlap
+        # mol = reader.mol_from_text(MOL["Formestane"])  # TODO: overlap
+        # mol = reader.mol_from_text(MOL["Ceftazidime"])  # TODO: overlap
+        # mol = reader.mol_from_text(MOL["Daunorubicin"])  # TODO: quart overlap
+        # mol = reader.mol_from_text(MOL["Paclitaxel"])  # TODO: overlap
+        # mol = reader.mol_from_text(MOL["Spinosad"])  # TODO: overlap
         calc2dcoords.calc2dcoords(mol)
         self.draw_test(mol)

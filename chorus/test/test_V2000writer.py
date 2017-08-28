@@ -6,7 +6,7 @@
 
 import unittest
 
-from chorus.test.ctabprovider import CTABS
+from chorus.demo import MOL
 import chorus.v2000reader as reader
 import chorus.v2000writer as writer
 
@@ -14,5 +14,5 @@ import chorus.v2000writer as writer
 class TestV2000Writer(unittest.TestCase):
     @unittest.skip("")
     def test_sdf(self):
-        compound = reader.mol_from_text(CTABS["Phe"])
+        compound = reader.mol_from_text(MOL["Phe"])
         print(writer.mols_to_text([compound]))

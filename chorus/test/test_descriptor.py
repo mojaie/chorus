@@ -8,7 +8,7 @@ import unittest
 
 from chorus.smilessupplier import smiles_to_compound
 from chorus import v2000reader as reader
-from chorus.test.ctabprovider import CTABS
+from chorus.demo import MOL
 from chorus import descriptor
 from chorus import molutil
 
@@ -37,14 +37,14 @@ class Testdescriptor(unittest.TestCase):
         self.assertTrue(mol.atom(7).H_acceptor)
 
     def test_assign_rotatable(self):
-        mol = reader.mol_from_text(CTABS["Phe"])
+        mol = reader.mol_from_text(MOL["Phe"])
         descriptor.assign_rotatable(mol)
         self.assertEqual(molutil.rotatable_count(mol), 3)
-        mol = reader.mol_from_text(CTABS["KCl"])
+        mol = reader.mol_from_text(MOL["KCl"])
         self.assertEqual(molutil.rotatable_count(mol), 0)
-        mol = reader.mol_from_text(CTABS["Dipyridamole"])
+        mol = reader.mol_from_text(MOL["Dipyridamole"])
         self.assertEqual(molutil.rotatable_count(mol), 12)
-        mol = reader.mol_from_text(CTABS["Paclitaxel"])
+        mol = reader.mol_from_text(MOL["Paclitaxel"])
         self.assertEqual(molutil.rotatable_count(mol), 15)
 
     def test_assign_aromatic(self):

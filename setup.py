@@ -49,6 +49,9 @@ setup(
     ],
     keywords="molecule-modeling cheminformatics",
     packages=find_packages(exclude=["chorus.test*"]),
+    package_data={
+        "": ["*.yaml", "resources/test/*.mol", "resources/DrugBank/*.mol"]
+    },
     python_requires=">=3.5",
     install_requires=[
         "numpy", "numexpr", "matplotlib", "networkx", "pyyaml"

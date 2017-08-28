@@ -8,7 +8,7 @@ import unittest
 
 from chorus.smilessupplier import smiles_to_compound
 from chorus import v2000reader as reader
-from chorus.test.ctabprovider import CTABS
+from chorus.demo import MOL
 from chorus import molutil
 from chorus.draw.svg import SVG
 
@@ -16,11 +16,11 @@ from chorus.draw.svg import SVG
 class TestMolUtil(unittest.TestCase):
     def test_clone(self):
         # this takes 0.003 ms
-        m = reader.mol_from_text(CTABS["Indinavir"])
+        m = reader.mol_from_text(MOL["Indinavir"])
         cp = molutil.clone(m)
         self.assertEqual(len(m), len(cp))
         # deepcopy takes 0.013 ms
-        # m = reader.mol_from_text(CTABS["Indinavir"])
+        # m = reader.mol_from_text(MOL["Indinavir"])
         # cp = copy.deepcopy(m)
         # self.assertEqual(len(m), len(cp))
 
@@ -35,18 +35,18 @@ class TestMolUtil(unittest.TestCase):
         self.assertTrue("Rotatable" in obj["descriptors"])
 
     def test_mw(self):
-        mol = reader.mol_from_text(CTABS["Phe"])
+        mol = reader.mol_from_text(MOL["Phe"])
         self.assertAlmostEqual(molutil.mw(mol), 165.19, 2)
 
     def test_composition(self):
-        mol = reader.mol_from_text(CTABS["Phe"])
+        mol = reader.mol_from_text(MOL["Phe"])
         self.assertEqual(molutil.composition(mol),
                          {'H': 11, 'C': 9, 'O': 2, 'N': 1})
 
     def test_formula(self):
-        mol = reader.mol_from_text(CTABS["Phe"])
+        mol = reader.mol_from_text(MOL["Phe"])
         self.assertEqual(molutil.formula(mol), "C9H11NO2")
-        mol = reader.mol_from_text(CTABS["KCl"])
+        mol = reader.mol_from_text(MOL["KCl"])
         self.assertEqual(molutil.formula(mol), "Cl.K")  # longer text first
         mol = smiles_to_compound("CCO.O.O")
         self.assertEqual(molutil.formula(mol), "C2H6O.2H2O")

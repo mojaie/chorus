@@ -9,7 +9,7 @@ import pickle
 import unittest
 
 from chorus import v2000reader as reader
-from chorus.test.ctabprovider import CTABS
+from chorus.demo import MOL
 from chorus.model.graphmol import Compound
 from chorus import molutil, substructure
 
@@ -17,18 +17,18 @@ from chorus import molutil, substructure
 class TestGraphMol(unittest.TestCase):
     def test_pickle(self):
         # Compound is picklable
-        m = reader.mol_from_text(CTABS["Phe"])
+        m = reader.mol_from_text(MOL["Phe"])
         dmp = pickle.dumps(m)
         m2 = pickle.loads(dmp)
         self.assertEqual(len(m), len(m2))
 
     def test_hide_carbon(self):
-        m = reader.mol_from_text(CTABS["Phe"])
+        m = reader.mol_from_text(MOL["Phe"])
         self.assertTrue(m.atom(3).visible)
         self.assertFalse(m.atom(6).visible)
 
     def test_json(self):
-        m = reader.mol_from_text(CTABS["Cyanocobalamin"])
+        m = reader.mol_from_text(MOL["Cyanocobalamin"])
         d = m.jsonized()
         j = json.dumps(d)
         # Compressed file size

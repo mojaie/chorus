@@ -10,7 +10,7 @@ from collections import deque, Counter
 from chorus.util import debug
 from chorus.smilessupplier import smiles_to_compound
 from chorus import v2000reader as reader
-from chorus.test.ctabprovider import CTABS
+from chorus.demo import MOL
 from chorus import topology
 
 
@@ -49,13 +49,13 @@ class TestTopology(unittest.TestCase):
 
     def test_recognize(self):
         # Phenylalanin
-        mol = reader.mol_from_text(CTABS["Phe"])
+        mol = reader.mol_from_text(MOL["Phe"])
         self.assertTrue(
             self.equivalent_ring(mol.rings[0], [8, 11, 12, 10, 7, 6]))
         self.assertEqual(mol.scaffolds, [[0]])
         self.assertEqual(mol.isolated, [])
         # Premarin
-        mol = reader.mol_from_text(CTABS["Premarin"])
+        mol = reader.mol_from_text(MOL["Premarin"])
         for a, b in zip(sorted(mol.rings), sorted([
             [10, 9, 8, 7, 4, 5],
             [10, 14, 13, 12, 11, 9],
@@ -71,12 +71,12 @@ class TestTopology(unittest.TestCase):
         self.assertEqual(mol.scaffolds, [[0, 1, 2, 3]])
         self.assertEqual(mol.isolated, [])
         # KCl
-        mol = reader.mol_from_text(CTABS["KCl"])
+        mol = reader.mol_from_text(MOL["KCl"])
         self.assertEqual(mol.rings, [])
         self.assertEqual(mol.scaffolds, [])
         self.assertEqual(mol.isolated, [[2]])
         # Goserelin
-        mol = reader.mol_from_text(CTABS["Goserelin"])
+        mol = reader.mol_from_text(MOL["Goserelin"])
         self.assertEqual(sorted([len(r) for r in mol.rings]),
                          [5, 5, 5, 5, 6, 6])
         self.assertEqual(
@@ -88,12 +88,12 @@ class TestTopology(unittest.TestCase):
     # @debug.profile
     def test_minify_ring(self):
         # Cyanocobalamin
-        mol = reader.mol_from_text(CTABS["Cyanocobalamin"])
+        mol = reader.mol_from_text(MOL["Cyanocobalamin"])
         self.assertEqual(
             Counter([len(r) for r in mol.rings]), {5: 7, 6: 4, 19: 1})
         # Rifabutin
         # TODO: this can be [5, 5, 6, 6, 6, 25] or [5, 5, 6, 6, 6, 24]
-        # mol = reader.mol_from_text(CTABS["Rifabutin"])
+        # mol = reader.mol_from_text(MOL["Rifabutin"])
         # self.assertEqual(sorted([len(r) for r in mol.rings]),
         #                 [5, 5, 6, 6, 6, 24])
         # Cubane
@@ -107,7 +107,7 @@ class TestTopology(unittest.TestCase):
         # Fullerene
         # TODO: It does not work with such a comprecated case.
         """
-        mol = reader.mol_from_text(CTABS["Fullerene"])
+        mol = reader.mol_from_text(MOL["Fullerene"])
         topology.recognize(mol)
         topology.minify_ring(mol)
         c = Counter([len(r) for r in mol.rings])

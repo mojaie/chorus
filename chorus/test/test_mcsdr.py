@@ -8,7 +8,7 @@ import unittest
 
 import networkx as nx
 
-from chorus.test.ctabprovider import CTABS
+from chorus.demo import MOL
 from chorus import v2000reader as reader
 from chorus.smilessupplier import smiles_to_compound
 from chorus import mcsdr
@@ -28,8 +28,8 @@ class TestMCS(unittest.TestCase):
 
     def test_mcsdr1(self):
         # TODO: pi mismatch is not acceptable
-        mol1 = reader.mol_from_text(CTABS["Phe"])
-        mol2 = reader.mol_from_text(CTABS["Arg"])
+        mol1 = reader.mol_from_text(MOL["Phe"])
+        mol2 = reader.mol_from_text(MOL["Arg"])
         arr1 = mcsdr.comparison_array(mol1)
         arr2 = mcsdr.comparison_array(mol2)
         self.assertEqual(mcsdr.local_sim(arr1, arr2)["mcsdr_edges"], 5)
@@ -43,7 +43,7 @@ class TestMCS(unittest.TestCase):
     def test_mcsdr2(self):
         # Disconnected
         mol1 = smiles_to_compound("C1CCCC1CCCC(=O)O")
-        mol2 = reader.mol_from_text(CTABS["CaAcO2"])
+        mol2 = reader.mol_from_text(MOL["CaAcO2"])
         arr1 = mcsdr.comparison_array(mol1)
         arr2 = mcsdr.comparison_array(mol2)
         self.assertEqual(mcsdr.local_sim(arr1, arr2)["mcsdr_edges"], 3)
@@ -57,8 +57,8 @@ class TestMCS(unittest.TestCase):
     @unittest.skip("")
     @debug.profile
     def test_mcsperformance(self):
-        mol1 = reader.mol_from_text(CTABS["Fondaparinux"])
-        mol2 = reader.mol_from_text(CTABS["Goserelin"])
+        mol1 = reader.mol_from_text(MOL["Fondaparinux"])
+        mol2 = reader.mol_from_text(MOL["Goserelin"])
         arr1 = mcsdr.comparison_array(mol1)
         arr2 = mcsdr.comparison_array(mol2)
         print(mcsdr.find_mcs(arr1, arr2))

@@ -7,20 +7,20 @@
 import glob
 import os
 
-RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "../../resources/")
+RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "resources")
 
-CTABS = {}
-for path in glob.glob(os.path.join(RESOURCE_DIR, "ctabfiles/*.mol")):
+MOL = {}
+for path in glob.glob(os.path.join(RESOURCE_DIR, "test/*.mol")):
     name = os.path.basename(path).split(".")[0]
     with open(path) as file:
-        CTABS[name] = file.read()
+        MOL[name] = file.read()
 
 for path in glob.glob(os.path.join(RESOURCE_DIR, "DrugBank/*.mol")):
     name = os.path.basename(path).split(".")[0]
     with open(path) as file:
-        CTABS[name] = file.read()
+        MOL[name] = file.read()
 
 for path in glob.glob(os.path.join(RESOURCE_DIR, "PubChem/*.mol")):
     name = os.path.basename(path).split(".")[0]
     with open(path) as file:
-        CTABS[name] = file.read()
+        MOL[name] = file.read()
