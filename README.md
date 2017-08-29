@@ -9,42 +9,35 @@ Chorus
 Installation
 -------------
 
-PyPI
-^^^^^^
+### PyPI
 
-::
+```
+pip3 install chorus
+```
 
-   pip3 install chorus
 
-
-Anaconda
-^^^^^^^^^
+### Anaconda
 
 Distributing conda package is work in progress.
 
-::
+```
+conda upgrade -n root conda
+conda install -n root conda-build
 
-   conda upgrade -n root conda
-   conda install -n root conda-build
-
-   conda skeleton pypi chorus
-   conda build chorus
-   conda install --use-local chorus
-
+conda skeleton pypi chorus
+conda build chorus
+conda install --use-local chorus
+```
 
 
 Features
 ----------
 
 - Structure image export (PNG)
-
-.. image:: img/demo.png
-   :width: 300px
+  <img src="img/demo.png" width="300"/>
 
 - Structure image export (SVG)
-
-.. image:: img/demo.svg
-   :width: 300px
+  <img src="img/demo.svg" width="300"/>
 
 - Import from/export to .sdf, .mol
 - Import from/export to RDKit molecule
@@ -82,18 +75,20 @@ Features (will never be implemented)
 API Documentation
 ------------------------
 
-https://mojaie.github.io/chorus/docs
+https://mojaie.github.io/chorus
 
 
 
 License
 -------------
 
-`MIT license <http://opensource.org/licenses/MIT>`_ except for external resources (see resources/README.md)
+[MIT license](http://opensource.org/licenses/MIT)
+
+See [chorus/resources/README.md](https://github.com/mojaie/chorus/tree/master/chorus/resources) for license details of sample dataset resources.
 
 
 
 Copyright
 --------------
 
-\(C) 2014-2017 Seiji Matsuoka
+(C) 2014-2017 Seiji Matsuoka

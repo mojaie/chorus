@@ -3,39 +3,40 @@ Getting started
 ====================================================================
 
 
-**Installation**
-
-*Mac*
-
-If you don't have Python3,
-
-ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-brew install python3
-
-and then
-
-pip3 install chorus
+Installation
+-------------
 
 
 
+PyPI
+^^^^^^
+
+::
+
+   pip3 install chorus
+
+
+
+Anaconda
+^^^^^^^^^
+
+Distributing conda package is work in progress.
+
+::
+
+   conda upgrade -n root conda
+   conda install -n root conda-build
+
+   conda skeleton pypi chorus
+   conda build chorus
+   conda install --use-local chorus
 
 
 
 
-**Import Chemical structure**
-
-*SMILES*
-
-
-*CTAB file (.sdf, .mol)*
 
 
 
-**Draw molecule to SVG**
-
-
-
-**Calculate molecule properties**
 
 
 

@@ -3,11 +3,14 @@ Chorus Documentation
 ============================
 
 
+**Chorus** is a simple chemical structure modeling toolkit.
+
+
 Contents:
 -------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    introduction.rst
    getting_started.rst
