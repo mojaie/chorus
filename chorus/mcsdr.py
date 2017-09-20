@@ -26,19 +26,14 @@ try:
     find_cliques = mcsdr.find_cliques
     comparison_graph = mcsdr.comparison_graph
     CYTHON_AVAILABLE = True
-    print("Cython is available")
 except ImportError:
     from networkx.algorithms.clique import find_cliques
     CYTHON_AVAILABLE = False
-    print("Cython is not available")
-
-try:
-    import numexpr as ne
-    NUMEXPR_AVAILABLE = True
-    print("Numexpr is available")
-except ImportError:
-    NUMEXPR_AVAILABLE = False
-    print("Numexpr is not available")
+    try:
+        import numexpr as ne
+        NUMEXPR_AVAILABLE = True
+    except ImportError:
+        NUMEXPR_AVAILABLE = False
 
 
 def comparison_array(molecule, diameter=10, size=30, ignore_hydrogen=True):
