@@ -14,8 +14,8 @@ from chorus import molutil
 import chorus.util.text as tx
 
 
-def inspect_file(path):
-    """Inspect SDFile structure
+def inspect(lines):
+    """Inspect SDFile list of string
 
     Returns:
         tuple: (data label list, number of records)
@@ -23,22 +23,39 @@ def inspect_file(path):
     labels = set()
     count = 0
     exp = re.compile(r">.*?<([\w ]+)>")  # Space should be accepted
-    with open(path, 'rb') as f:
-        valid = False
-        for line in f:
-            lined = tx.decode(line)
-            if lined.startswith("M  END\n"):
-                valid = True
-            elif lined.startswith("$$$$"):
-                count += 1
-                valid = False
-            else:
-                result = exp.match(lined)
-                if result:
-                    labels.add(result.group(1))
-        if valid:
+    valid = False
+    for line in lines:
+        lined = tx.decode(line)
+        if lined.startswith("M  END\n"):
+            valid = True
+        elif lined.startswith("$$$$"):
             count += 1
+            valid = False
+        else:
+            result = exp.match(lined)
+            if result:
+                labels.add(result.group(1))
+    if valid:
+        count += 1
     return list(labels), count
+
+
+def inspect_text(text):
+    # Lazy line splitter. More efficient memory usage than str.split.
+    exp = re.compile(r"[^\n]*\n|.")
+    lines = (x.group(0) for x in re.finditer(exp, text))
+    return inspect(lines)
+
+
+def inspect_file(path):
+    """Inspect SDFile structure
+
+    Returns:
+        tuple: (data label list, number of records)
+    """
+    with open(path, 'rb') as f:
+        labels, count = inspect(f)
+    return labels, count
 
 
 def optional_data(lines):
