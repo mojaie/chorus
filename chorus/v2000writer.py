@@ -31,12 +31,15 @@ def bond_block(mol, idx_table):
         2: {0: 0, 1: 1, 3: 3, 2: 6}
     }
     lines = []
-    for u, v, bond in mol.bonds_iter():
+    for u, v, b in mol.bonds_iter():
         bond_line = []
         bond_line.append("{:>3}".format(idx_table[u]))
         bond_line.append("{:>3}".format(idx_table[v]))
-        bond_line.append("{:>3}".format(bond.order))
-        bond_line.append("{:>3}".format(stereo_conv[bond.order][bond.type]))
+        bond_line.append("{:>3}".format(b.order))
+        try:
+            bond_line.append("{:>3}".format(stereo_conv[b.order][b.type]))
+        except KeyError:
+            bond_line.append("{:>3}".format(0))
         lines.append("{}{}{}{}  0  0  0".format(*bond_line))
     return lines
 

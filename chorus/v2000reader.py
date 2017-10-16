@@ -25,14 +25,13 @@ def inspect(lines):
     exp = re.compile(r">.*?<([\w ]+)>")  # Space should be accepted
     valid = False
     for line in lines:
-        lined = tx.decode(line)
-        if lined.startswith("M  END\n"):
+        if line.startswith("M  END\n"):
             valid = True
-        elif lined.startswith("$$$$"):
+        elif line.startswith("$$$$"):
             count += 1
             valid = False
         else:
-            result = exp.match(lined)
+            result = exp.match(line)
             if result:
                 labels.add(result.group(1))
     if valid:
@@ -54,7 +53,7 @@ def inspect_file(path):
         tuple: (data label list, number of records)
     """
     with open(path, 'rb') as f:
-        labels, count = inspect(f)
+        labels, count = inspect(tx.decode(line) for line in f)
     return labels, count
 
 
