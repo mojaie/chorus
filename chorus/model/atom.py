@@ -80,13 +80,13 @@ class Atom(object):
         # loads attribute dict
         if attr_dict is not None:
             for k, v in attr_dict.items():
-                self.__setattr__(k, v)
-
-    def __setattr__(self, name, value):
-        object.__setattr__(self, ALIASES.get(name, name), value)
+                setattr(self, ALIASES[k], v)
 
     def __getattr__(self, name):
-        return object.__getattribute__(self, ALIASES.get(name, name))
+        try:
+            return object.__getattribute__(self, name)
+        except AttributeError:
+            return object.__getattribute__(self, ALIASES.get(name, name))
 
     def add_hydrogen(self, num):
         self.H_count = num
@@ -134,6 +134,6 @@ class Atom(object):
 
     def dumps(self):
         res = {}
-        for k in ALIASES.keys():
-            res[k] = getattr(self, k)
+        for k, v in ALIASES.items():
+            res[k] = getattr(self, v)
         return res
