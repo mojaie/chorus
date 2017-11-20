@@ -8,7 +8,7 @@ from chorus.util import iterator
 
 
 def assign_valence(mol):
-    """ Assign pi electron and hydrogens """
+    """Assign pi electron and hydrogens"""
     for u, v, bond in mol.bonds_iter():
         if bond.order == 2:
             mol.atom(u).pi = 1
@@ -51,7 +51,7 @@ def assign_rotatable(mol):
 
 
 def assign_aromatic(mol):
-    """ Assign aromatic ring
+    """Assign aromatic ring
     sp2 atom:
     pi=1 -> +1
     N, O, S, C- -> +2

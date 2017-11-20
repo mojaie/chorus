@@ -7,6 +7,9 @@
 def assign_type(mol, force_recalc=False):
     """ PATTY [Bush et al. J. Inf. Comput. Sci 33 (1993) 756-762]
     TODO: not yet implemented
+
+    1:cation 2:anion 3:donor 4:acceptor
+    5:polar 6:hydrophobe 7:others
     """
     if "PATTY" in mol.descriptors and not force_recalc:
         return

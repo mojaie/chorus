@@ -29,5 +29,5 @@ API references
    wclogp
    substructure
    mcsdr
-   indigo
    rdkit
+   indigo
