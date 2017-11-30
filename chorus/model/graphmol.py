@@ -52,17 +52,17 @@ class Compound(object):
         """Simple molecule description"""
         adscs = []
         for i, a in self.atoms_iter():
-            adsc = '{}({}{} {} {})'.format(
+            adsc = "{}({}{} {} {})".format(
                 i, a.symbol, a.charge_sign(), int(a.pi), a.stereo)
             adscs.append(adsc)
-        atext = ', '.join(adscs)
-        odsign = {1: '-', 2: '=', 3: '#'}
+        atext = ", ".join(adscs)
+        odsign = {1: "-", 2: "=", 3: "#"}
         bdscs = []
         for u, v, b in self.bonds_iter():
-            bdsc = '{}{}{}'.format(u, odsign[b.order], v)
+            bdsc = "{}{}{}".format(u, odsign[b.order], v)
             bdscs.append(bdsc)
-        btext = ', '.join(bdscs)
-        return '\n'.join(['Compound:', atext, btext])
+        btext = ", ".join(bdscs)
+        return "\n".join(["Compound:", atext, btext])
 
     def __len__(self):
         """Alias of atom_count"""
@@ -74,11 +74,11 @@ class Compound(object):
 
     def atom(self, key):
         """Get an atom."""
-        return self.graph.node[key]['atom']
+        return self.graph.nodes[key]["atom"]
 
     def add_atom(self, key, atom):
         """Set an atom. Existing atom will be overwritten."""
-        self.graph.add_node(key, attr_dict={'atom': atom})
+        self.graph.add_node(key, atom=atom)
 
     def remove_atom(self, key):
         """Remove an atom and adjacent bonds."""
@@ -86,8 +86,8 @@ class Compound(object):
 
     def atoms_iter(self):
         """Iterate over atoms."""
-        for n, attr in self.graph.nodes_iter(data=True):
-            yield n, attr['atom']
+        for n, atom in self.graph.nodes.data("atom"):
+            yield n, atom
 
     def atom_count(self):
         """Get number of atoms."""
@@ -95,11 +95,11 @@ class Compound(object):
 
     def bond(self, key1, key2):
         """Get a bond."""
-        return self.graph.edge[key1][key2]['bond']
+        return self.graph[key1][key2]["bond"]
 
     def add_bond(self, key1, key2, bond):
         """Set a bond. Existing bond will be overwritten."""
-        self.graph.add_edge(key1, key2, attr_dict={'bond': bond})
+        self.graph.add_edge(key1, key2, bond=bond)
 
     def remove_bond(self, key1, key2):
         """Remove a bond."""
@@ -107,8 +107,8 @@ class Compound(object):
 
     def bonds_iter(self):
         """Iterate over bonds."""
-        for u, v, attr in self.graph.edges_iter(data=True):
-            yield u, v, attr['bond']
+        for u, v, bond in self.graph.edges.data("bond"):
+            yield u, v, bond
 
     def bond_count(self):
         """Return number of bonds."""
@@ -116,11 +116,11 @@ class Compound(object):
 
     def key_set(self):
         """Get a set of atom keys"""
-        return set(self.graph.adj.keys())
+        return set(self.graph.nodes)
 
     def neighbors(self, key):
         """Return dict of neighbor atom index and connecting bond."""
-        return {n: attr['bond'] for n, attr in self.graph[key].items()}
+        return {n: attr["bond"] for n, attr in self.graph[key].items()}
 
     def neighbor_count(self, key):
         """Return number of neighbors."""
@@ -128,8 +128,8 @@ class Compound(object):
 
     def neighbors_iter(self):
         """Iterate over atoms and return its neighbors."""
-        for n in self.graph:
-            yield n, self.neighbors(n)
+        for n, adj in self.graph.adj.items():
+            yield n, {n: attr["bond"] for n, attr in adj.items()}
 
     def clear(self):
         """Empty the instance """
@@ -166,7 +166,7 @@ class Compound(object):
             self.add_bond(base, mapping[target], bond)
 
     def available_idx(self):
-        return max(self.graph.nodes() + [0, ]) + 1
+        return max(self.graph.nodes, default=0) + 1
 
     def expand(self, idx):
         """ expand shorthand symbol to graphmol """
@@ -181,9 +181,9 @@ class Compound(object):
             "descriptors": list(self.descriptors),
             "isolated": self.isolated,
             "data": self.data,
-            'rings': self.rings,
-            'scaffolds': self.scaffolds,
-            'size2d': self.size2d
+            "rings": self.rings,
+            "scaffolds": self.scaffolds,
+            "size2d": self.size2d
         }
         data["atoms"] = {}
         data["connections"] = {}

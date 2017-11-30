@@ -181,10 +181,9 @@ def molecule(lines):
     # chiral_flag = int(count_line[12:15])  # Not used
     # num_prop = int(count_line[30:33])  # "No longer supported"
     compound = Compound()
-    compound.graph.node = atoms(lines[4: num_atoms+4])
-    compound.graph.adj = bonds(lines[num_atoms+4: num_atoms+num_bonds+4],
-                               compound.graph.node.keys())
-    compound.graph.edge = compound.graph.adj
+    compound.graph._node = atoms(lines[4: num_atoms+4])
+    compound.graph._adj = bonds(lines[num_atoms+4: num_atoms+num_bonds+4],
+                                compound.graph._node.keys())
     props = properties(lines[num_atoms+num_bonds+4:])
     add_properties(props, compound)
     return compound
@@ -241,6 +240,7 @@ def mol_supplier(lines, no_halt, assign_descriptors):
                 continue
             else:
                 print(traceback.format_exc())
+                raise Exception("Unsupported Error")
         c.data = optional_data(opt)
         yield c
 

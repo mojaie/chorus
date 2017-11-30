@@ -49,8 +49,8 @@ def comparison_graph(arr1, arr2):
         adj[(edge.u1, edge.u2)][(edge.v1, edge.v2)] = {}
         adj[(edge.v1, edge.v2)][(edge.u1, edge.u2)] = {}
     product = nx.Graph()
-    product.node = node
-    product.adj = adj
+    product._node = node
+    product._adj = adj
     return product
 
 
@@ -60,7 +60,7 @@ def find_cliques(graph, root=None):
     decode = {i: node for i, node in enumerate(graph)}
     encode = {node: i for i, node in decode.items()}
     adj = {}
-    for node, adjs in graph.adjacency_iter():
+    for node, adjs in graph.adjacency():
         eadjs = set(encode[a] for a in adjs)
         adj[encode[node]] = eadjs
     # initialize

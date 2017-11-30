@@ -8,6 +8,10 @@ Options.annotate = True
 setup(
     cmdclass={'build_ext': build_ext},
     ext_modules=[
-        Extension("mcsdr", ["mcsdr.pyx"], language="c++")
+        Extension(
+            "mcsdr", sources=["mcsdr.pyx"], language="c++",
+            extra_compile_args=["-std=c++11", "-stdlib=libc++"],
+            extra_link_args=["-std=c++11", "-stdlib=libc++"]
+        )
     ]
 )
