@@ -196,3 +196,8 @@ class SVG(drawable.Drawable):
         self._elems.append(
             tmpl.format(round(px, 2), round(py, 2),
                         FONT_SIZE, color, op[align], rt))
+
+
+def mol_to_svg(mol, screen_size=(180, 180)):
+    """Convenient method to generate SVG image"""
+    return SVG(mol, screen_size).contents()
