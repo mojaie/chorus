@@ -76,11 +76,13 @@ def morgan_dist(mol1, mol2, radius=2, digit=3):
 
 
 def fmcs(mol1, mol2, timeout=2, digit=3):
+    if int(timeout) != float(timeout):
+        raise TypeError('timeout should be integer')
     rdmol1 = to_rdmol(mol1)
     rdmol2 = to_rdmol(mol2)
     edges1 = rdmol1.GetNumBonds()
     edges2 = rdmol2.GetNumBonds()
-    mcs = rdFMCS.FindMCS((rdmol1, rdmol2), timeout=timeout)
+    mcs = rdFMCS.FindMCS((rdmol1, rdmol2), timeout=int(timeout))
     # Jaccard-Tanimoto coefficient
     try:
         sim = round(mcs.numBonds / (edges1 + edges2 - mcs.numBonds), digit)
