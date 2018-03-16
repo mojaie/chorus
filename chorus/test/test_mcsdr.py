@@ -32,13 +32,13 @@ class TestMCS(unittest.TestCase):
         mol2 = reader.mol_from_text(MOL["Arg"])
         arr1 = mcsdr.comparison_array(mol1)
         arr2 = mcsdr.comparison_array(mol2)
-        self.assertEqual(mcsdr.local_sim(arr1, arr2)["mcsdr_edges"], 5)
+        self.assertEqual(mcsdr.from_array(arr1, arr2).edge_count(), 5)
         # Delta-y exchange will not occur due to distance descriptor
         mol1 = smiles_to_compound("C1OC1CCC(=O)O")
         mol2 = smiles_to_compound("CC(O)CCC(=O)O")
         arr1 = mcsdr.comparison_array(mol1)
         arr2 = mcsdr.comparison_array(mol2)
-        self.assertEqual(mcsdr.local_sim(arr1, arr2)["mcsdr_edges"], 7)
+        self.assertEqual(mcsdr.from_array(arr1, arr2).edge_count(), 7)
 
     def test_mcsdr2(self):
         # Disconnected
@@ -46,29 +46,42 @@ class TestMCS(unittest.TestCase):
         mol2 = reader.mol_from_text(MOL["CaAcO2"])
         arr1 = mcsdr.comparison_array(mol1)
         arr2 = mcsdr.comparison_array(mol2)
-        self.assertEqual(mcsdr.local_sim(arr1, arr2)["mcsdr_edges"], 3)
+        self.assertEqual(mcsdr.from_array(arr1, arr2).edge_count(), 3)
         # No line graph
         mol1 = smiles_to_compound("CO")
         mol2 = smiles_to_compound("CC")
         arr1 = mcsdr.comparison_array(mol1)
         arr2 = mcsdr.comparison_array(mol2)
-        self.assertEqual(mcsdr.local_sim(arr1, arr2)["mcsdr_edges"], 0)
+        self.assertEqual(mcsdr.from_array(arr1, arr2).edge_count(), 0)
 
-    @unittest.skip("not yet implemented")
-    def test_timeout(self):
+    @unittest.skip("Takes long time")
+    def test_timeout1(self):
         mol = reader.mol_from_text(MOL["Buckminsterfullerene"])
+        with self.assertRaises(RuntimeError):
+            mcsdr.comparison_array(mol, size=2000, timeout=0.1)
         arr = mcsdr.comparison_array(mol)
-        sim = mcsdr.local_sim(arr, arr, timeout=0.2)
-        self.assertEqual(sim["mcsdr_edges"], 60)
+        sim = mcsdr.from_array(arr, arr, timeout=0.1)
+        self.assertEqual(sim.local_sim(), 0)
 
     @unittest.skip("")
-    @debug.profile
+    def test_timeout2(self):
+        mol = reader.mol_from_text(MOL["Cyanocobalamin"])
+        arr = mcsdr.comparison_array(mol, timeout=None)
+        res = mcsdr.from_array(arr, arr, timeout=None)
+        print(res.edge_count())
+        print(res.max1)
+        print(res.max2)
+        print(res.local_sim())
+        print(res.exec_time())
+
+    # @debug.profile
+    @unittest.skip("")
     def test_mcsperformance(self):
         mol1 = reader.mol_from_text(MOL["Fondaparinux"])
         mol2 = reader.mol_from_text(MOL["Goserelin"])
         arr1 = mcsdr.comparison_array(mol1)
         arr2 = mcsdr.comparison_array(mol2)
-        print(mcsdr.find_mcs(arr1, arr2))
+        print(debug.profile(mcsdr.from_array)(arr1, arr2))
 
     @unittest.skip("")
     def test_clique_dist(self):

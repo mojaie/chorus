@@ -36,7 +36,8 @@ except ImportError:
         NUMEXPR_AVAILABLE = False
 
 
-def comparison_array(molecule, diameter=10, size=30, ignore_hydrogen=True):
+def comparison_array(molecule, diameter=8, size=30,
+                     ignore_hydrogen=True, timeout=1):
     """ Generate comparison array
     Comparison array consists of node pairs in the graph and a collater.
     42 bit collater
@@ -101,8 +102,11 @@ def comparison_array(molecule, diameter=10, size=30, ignore_hydrogen=True):
             matrix.add_edge(ui, vi)
             code = (d << 18 | ua["type"]) << 18 | g.node[vi]["type"]
             arr.append((ui, vi, code))
-    max_size = len(max(find_cliques(matrix), key=len, default=[]))
-    return arr, max_size, int_to_node
+    cliques, elapsed = find_cliques(matrix, timeout=timeout)
+    if elapsed > timeout:
+        raise RuntimeError("Max fragment determination has timed out")
+    max_size = len(max(cliques, key=len, default=[]))
+    return arr, max_size, int_to_node, round(elapsed, 5)
 
 
 def _reachables(G, root, max_dist, max_size):
@@ -131,6 +135,7 @@ def comparison_graph_py(arr1, arr2):
     """ Generate comparison graph
     Comparison graph is a modular product of molecule edges
     """
+    # timeout is not implemented
     u1, v1, c1 = zip(*arr1)
     u2, v2, c2 = zip(*arr2)
     c1 = np.array(c1, dtype=int)
@@ -163,63 +168,57 @@ if not CYTHON_AVAILABLE:
     comparison_graph = comparison_graph_py
 
 
-def find_mcsdr(arr1, arr2):
-    if not (arr1[0] and arr2[0]):
-        return []
-    max_c = max(find_cliques(comparison_graph(arr1[0], arr2[0])),
-                key=len, default=[])
-    return [(arr1[2][n1], arr2[2][n2]) for n1, n2 in max_c]
+class McsdrGls(object):
+    def __init__(self, arr1, arr2, timeout):
+        self.max1 = arr1[1]
+        self.max2 = arr2[1]
+        self.map1 = arr1[2]
+        self.map2 = arr2[2]
+        self.max_clique = []
+        if (arr1[0] and arr2[0]):
+            cg, elapsed = comparison_graph(arr1[0], arr2[0], timeout=timeout)
+            rest = timeout - elapsed
+            cliques, elapsed2 = find_cliques(cg, timeout=rest)
+            self.max_clique = max(cliques, key=len, default=[])
+            self.cg_elapsed = elapsed
+            self.cl_elapsed = elapsed2
+
+    def edge_count(self):
+        return len(self.max_clique)
+
+    def local_sim(self, digit=3):
+        ecnt = self.edge_count()
+        try:
+            sim = ecnt / (self.max1 + self.max2 - ecnt)
+        except ZeroDivisionError:
+            # if both arr1 and arr2 have no edges, no common structures.
+            sim = 0
+        return round(sim, digit)
+
+    def common_struct(self, mol1):
+        new_mol = Compound()
+        edges = [self.map1[n1] for n1, _ in self.max_clique]
+        atoms = set()
+        for u, v in edges:
+            atoms |= {u, v}
+            bond = mol1.bond(u, v)
+            new_mol.add_bond(u, v, bond)
+        for a in atoms:
+            new_mol.add_atom(a, mol1.atom(a))
+        return new_mol
+
+    def exec_time(self):
+        return {
+            "comparison_graph": round(self.cg_elapsed, 5),
+            "find_cliques": round(self.cl_elapsed, 5)
+        }
 
 
-def mcsdr_edge_count(arr1, arr2):
-    """ Returns mcsdr edge count """
-    return len(find_mcsdr(arr1, arr2))
+def from_array(arr1, arr2, timeout=10):
+    return McsdrGls(arr1, arr2, timeout)
 
 
-def local_sim(arr1, arr2, digit=3):
-    """ Graph-based local similarity(GLS) index """
-    ms = mcsdr_edge_count(arr1, arr2)
-    try:
-        t = ms / (arr1[1] + arr2[1] - ms)
-    except ZeroDivisionError:
-        # if both arr1 and arr2 have no edges, there is no common structures.
-        t = 0
-    return {
-        "local_sim": round(t, digit),
-        "mcsdr_edges": ms
-    }
-
-
-# TODO: instant function
-
-
-def exec_(mol1, mol2):
-    result = []
-    try:
-        a1 = comparison_array(mol1)
-        a2 = comparison_array(mol2)
-    except ValueError:
-        # if len(g1) < 3 or len(g2) < 3
-        return result
-    for c in find_cliques(comparison_graph(a1[0], a2[0])):
-        if len(c) > len(result):
-            result = c
-    return [(a1[2][n1], a2[2][n2]) for n1, n2 in result]
-
-
-# TODO: show structure
-
-
-def mcs_structure(mol1, mol2):
-    """ return mol object of mol1 && mol2 """
-    new_mol = Compound()
-    mcs_pairs = exec_(mol1, mol2)
-    edges, _ = zip(*mcs_pairs)
-    atoms = set()
-    for u, v in edges:
-        atoms |= {u, v}
-        bond = mol1.bond(u, v)
-        new_mol.add_bond(u, v, bond)
-    for a in atoms:
-        new_mol.add_atom(a, mol1.atom(a))
-    return new_mol
+def from_mol(mol1, mol2, timeout=10):
+    arr1 = comparison_array(mol1)
+    arr2 = comparison_array(mol2)
+    return from_array(arr1, arr2, timeout)
