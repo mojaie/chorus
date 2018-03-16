@@ -20,7 +20,7 @@ for path in glob.glob(os.path.join(RESOURCE_DIR, "DrugBank/*.mol")):
     with open(path) as file:
         MOL[name] = file.read()
 
-for path in glob.glob(os.path.join(RESOURCE_DIR, "PubChem/*.mol")):
+for path in glob.glob(os.path.join(RESOURCE_DIR, "PubChem/*.sdf")):
     name = os.path.basename(path).split(".")[0]
     with open(path) as file:
         MOL[name] = file.read()

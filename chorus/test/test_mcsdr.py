@@ -54,6 +54,13 @@ class TestMCS(unittest.TestCase):
         arr2 = mcsdr.comparison_array(mol2)
         self.assertEqual(mcsdr.local_sim(arr1, arr2)["mcsdr_edges"], 0)
 
+    @unittest.skip("not yet implemented")
+    def test_timeout(self):
+        mol = reader.mol_from_text(MOL["Buckminsterfullerene"])
+        arr = mcsdr.comparison_array(mol)
+        sim = mcsdr.local_sim(arr, arr, timeout=0.2)
+        self.assertEqual(sim["mcsdr_edges"], 60)
+
     @unittest.skip("")
     @debug.profile
     def test_mcsperformance(self):
