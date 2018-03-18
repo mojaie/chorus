@@ -91,5 +91,5 @@ def fmcs(mol1, mol2, timeout=2, digit=3):
     return {
         "mcs_edges": mcs.numBonds,
         "similarity": sim,
-        "canceled": mcs.canceled
+        "timeout": mcs.canceled
     }

@@ -210,7 +210,8 @@ class McsdrGls(object):
     def exec_time(self):
         return {
             "comparison_graph": round(self.cg_elapsed, 5),
-            "find_cliques": round(self.cl_elapsed, 5)
+            "find_cliques": round(self.cl_elapsed, 5),
+            "total": round(self.cg_elapsed + self.cl_elapsed, 5)
         }
 
 
