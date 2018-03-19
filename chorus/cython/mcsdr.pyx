@@ -6,11 +6,11 @@
 # http://opensource.org/licenses/MIT
 #
 
-import time
-
+import cython
 import networkx as nx
 
 from libcpp.vector cimport vector
+from libc.time cimport clock_t, clock, CLOCKS_PER_SEC
 
 
 cdef struct Edge:
@@ -20,10 +20,10 @@ cdef struct Edge:
     int v2
 
 
-def comparison_graph(arr1, arr2, timeout=None):
-    cdef float t0
-    if timeout is not None:
-        t0 = time.process_time()
+@cython.cdivision(True)
+def comparison_graph(arr1, arr2, double timeout):
+    cdef clock_t t0 = clock()
+    cdef clock_t expire = t0 + <clock_t>(timeout * CLOCKS_PER_SEC)
     u1a, v1a, c1a = zip(*arr1)
     u2a, v2a, c2a = zip(*arr2)
     cdef vector[int] u1 = u1a
@@ -37,8 +37,8 @@ def comparison_graph(arr1, arr2, timeout=None):
     cdef int j_max = c2.size()
     cdef Edge e
     cdef vector[Edge] edges
-    cdef float elapsed
     product = nx.Graph()
+    cdef int interrupted = 0
     for i in range(i_max):
         for j in range(j_max):
             if c1[i] == c2[j]:
@@ -47,11 +47,10 @@ def comparison_graph(arr1, arr2, timeout=None):
                 e.u2 = u2[j]
                 e.v2 = v2[j]
                 edges.push_back(e)
-        if timeout is not None:
-            elapsed = time.process_time() - t0
-            if elapsed > timeout:
-                break
-    else:
+        if clock() >= expire:
+            interrupted = 1
+            break
+    if not interrupted:
         # Graph.add_edges is expensive. Add adjacency dict manually.
         node = {}
         for edge in edges:
@@ -63,14 +62,14 @@ def comparison_graph(arr1, arr2, timeout=None):
             adj[(edge.v1, edge.v2)][(edge.u1, edge.u2)] = {}
         product._node = node
         product._adj = adj
-    elapsed = time.process_time() - t0
+    cdef double elapsed = <double>(clock() - t0) / CLOCKS_PER_SEC
     return product, elapsed
 
-
+"""
 def find_cliques_old(graph, timeout=None):
     cdef float t0
     if timeout is not None:
-        t0 = time.time()
+        t0 = time()
     # tuple index may expensive. convert to integer
     cdef int i
     decode = {i: node for i, node in enumerate(graph)}
@@ -149,17 +148,17 @@ cdef pivot(vs, int goal, adj, filter_=None):
     if max_num == -1:
         return set()
     return res
+"""
 
-
-def find_cliques(G, timeout=None):
+@cython.cdivision(True)
+def find_cliques(G, double timeout):
     # Based on networkX v2.1
     # TODO: slower???
     result = []
     if len(G) == 0:
         return result, 0
-    cdef float t0
-    if timeout is not None:
-        t0 = time.process_time()
+    cdef clock_t t0 = clock()
+    cdef clock_t expire = t0 + <clock_t>(timeout * CLOCKS_PER_SEC)
     cdef int i, u, q, l
     # tuple index may expensive. convert to integer
     decode = {i: node for i, node in enumerate(G)}
@@ -176,7 +175,7 @@ def find_cliques(G, timeout=None):
     u = max_adj(subg, cand, adj)
     ext_u = cand - adj[u]
     stack = []
-    cdef float elapsed
+    cdef double elapsed
     while True:
         if not ext_u:
             Q.pop()
@@ -190,10 +189,8 @@ def find_cliques(G, timeout=None):
         adj_q = adj[q]
         subg_q = subg & adj_q
         if not subg_q:
-            if timeout is not None:
-                elapsed = time.process_time() - t0
-                if elapsed > timeout:
-                    return result, elapsed
+            if clock() >= expire:
+                break
             result.append([decode[r] for r in Q])
             continue
         cand_q = cand & adj_q
@@ -204,7 +201,7 @@ def find_cliques(G, timeout=None):
             cand = cand_q
             u = max_adj(subg, cand, adj)
             ext_u = cand - adj[u]
-    elapsed = time.process_time() - t0
+    elapsed = <double>(clock() - t0) / CLOCKS_PER_SEC
     return result, elapsed
 
 
