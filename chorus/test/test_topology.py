@@ -106,10 +106,8 @@ class TestTopology(unittest.TestCase):
             Counter([len(r) for r in mol.rings]), {4: 1, 6: 1})
         # Fullerene
         # TODO: It does not work with such a comprecated case.
-        """
-        mol = reader.mol_from_text(MOL["Fullerene"])
-        topology.recognize(mol)
-        topology.minify_ring(mol)
-        c = Counter([len(r) for r in mol.rings])
-        self.assertEqual(dict(c), {5: 12, 6: 19})
-        """
+        # mol = reader.mol_from_text(MOL["Buckminsterfullerene"])
+        # topology.recognize(mol)
+        # topology.minify_ring(mol)
+        # c = Counter([len(r) for r in mol.rings])
+        # self.assertEqual(dict(c), {5: 12, 6: 19})

@@ -94,13 +94,10 @@ def minify_ring(mol, verbose=False):
         minified = []
         cnt = 0
         while rings:
-            # TODO: can be infinite loop ?
             cnt += 1
             if cnt > 100:
-                print("Minimization failed")
-                print(mol.options)
                 mol.descriptors.add("MinifiedRing")
-                return
+                raise RuntimeError("Ring minimization failed")
             r = rings.popleft()
             init_r = r
             if verbose:

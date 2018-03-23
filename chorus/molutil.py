@@ -23,10 +23,14 @@ def clone(mol):
 
 
 def assign_descriptors(mol):
+    """
+    Throws:
+        RuntimeError: if minify_ring failed
+    """
     topology.recognize(mol)
-    topology.minify_ring(mol)
     descriptor.assign_valence(mol)
     descriptor.assign_rotatable(mol)
+    topology.minify_ring(mol)
     descriptor.assign_aromatic(mol)
 
 

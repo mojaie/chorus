@@ -231,6 +231,14 @@ def mol_supplier(lines, no_halt, assign_descriptors):
                 c = molutil.null_molecule(assign_descriptors)
             else:
                 raise ValueError("Unsupported symbol: {}".format(err))
+        except RuntimeError as err:
+            if no_halt:
+                print(
+                    "Failed to minimize ring: {} (#{} in v2000reader)".format(
+                        err, i + 1)
+                )
+            else:
+                raise RuntimeError("Failed to minimize ring: {}".format(err))
         except:
             if no_halt:
                 print("Unexpected error (#{} in v2000reader)".format(i + 1))
