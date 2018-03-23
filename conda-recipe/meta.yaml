@@ -1,9 +1,9 @@
 package:
   name: chorus
-  version: 0.7.4
+  version: 0.7.7
 
 source:
-  git_rev: v0.7.4
+  git_rev: v0.7.7
   git_url: ../
 
 requirements:
