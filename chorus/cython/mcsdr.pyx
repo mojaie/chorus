@@ -47,9 +47,9 @@ def comparison_graph(arr1, arr2, double timeout):
                 e.u2 = u2[j]
                 e.v2 = v2[j]
                 edges.push_back(e)
-        if clock() >= expire:
-            interrupted = 1
-            break
+                if clock() >= expire:
+                    interrupted = 1
+                    break
     if not interrupted:
         # Graph.add_edges is expensive. Add adjacency dict manually.
         node = {}
@@ -177,6 +177,8 @@ def find_cliques(G, double timeout):
     stack = []
     cdef double elapsed
     while True:
+        if clock() >= expire:
+            break
         if not ext_u:
             Q.pop()
             if not stack:
@@ -189,8 +191,6 @@ def find_cliques(G, double timeout):
         adj_q = adj[q]
         subg_q = subg & adj_q
         if not subg_q:
-            if clock() >= expire:
-                break
             result.append([decode[r] for r in Q])
             continue
         cand_q = cand & adj_q

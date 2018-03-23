@@ -175,6 +175,8 @@ class McsdrGls(object):
         self.map1 = arr1[2]
         self.map2 = arr2[2]
         self.max_clique = []
+        self.cg_elapsed = 0
+        self.cl_elapsed = 0
         if (arr1[0] and arr2[0]):
             cg, elapsed = comparison_graph(arr1[0], arr2[0], timeout=timeout)
             rest = timeout - elapsed
