@@ -94,14 +94,15 @@ def scale_and_center(mol):
     dists = []
     for u, v, _ in mol.bonds_iter():
         dists.append(geometry.distance(mol.atom(u).coords, mol.atom(v).coords))
-    if not len(dists):  # No connection
+    try:
+        mlb = statistics.median(dists)
+    except statistics.StatisticsError:
+        # No connection
         mlb = math.sqrt(max([width, height]) / cnt)  # empirical
-    elif not max(dists):  # All connected atoms are overlapped
+    if not mlb:  # Many of connected atoms are overlapped
         mol.size2d = (0, 0, 1)
         mol.descriptors.add("ScaleAndCenter")
         return
-    else:
-        mlb = statistics.median(dists)
     # Centering
     for _, atom in mol.atoms_iter():
         atom.coords = (atom.coords[0] - x_offset, atom.coords[1] - y_offset)

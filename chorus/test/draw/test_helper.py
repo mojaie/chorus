@@ -51,4 +51,4 @@ class TestHelper(unittest.TestCase):
         helper.scale_and_center(m)
         self.assertAlmostEqual(m.size2d[0], 0, 2)
         self.assertAlmostEqual(m.size2d[1], 0, 2)
-        self.assertAlmostEqual(m.size2d[2], 0, 2)
+        self.assertAlmostEqual(m.size2d[2], 1, 2)
