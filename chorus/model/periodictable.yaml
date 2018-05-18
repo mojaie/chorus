@@ -67,6 +67,11 @@ F:
   valence: [1, ]
   color: [0, 255, 0]
 
+Ne:
+  number: 10
+  name: Neon
+  std_weight: 20.180
+
 Na:
   number: 11
   name: Sodium
@@ -119,6 +124,11 @@ Ca:
   number: 20
   name: Calcium
   std_weight: 40.078
+
+Ti:
+  number: 22
+  name: Titanium
+  std_weight: 47.867
 
 V:
   number: 23
@@ -182,10 +192,20 @@ Br:
   valence: [1, ]
   color: [0, 192, 0]
 
+Rb:
+  number: 37
+  name: Rubidium
+  std_weight: 85.468
+
 Sr:
   number: 38
   name: Strontium
   std_weight: 87.62
+
+Y:
+  number: 39
+  name: Yttrium
+  std_weight: 88.906
 
 Mo:
   number: 42
@@ -206,6 +226,11 @@ Ag:
   number: 47
   name: Silver
   std_weight: 107.87
+
+In:
+  number: 49
+  name: Indium
+  std_weight: 114.82
 
 Sn:
   number: 50
@@ -229,15 +254,30 @@ I:
   valence: [1, ]
   color: [0, 128, 0]
 
+Xe:
+  number: 54
+  name: Xenon
+  std_weight: 131.29
+
 Cs:
   number: 55
   name: Caesium
   std_weight: 132.91
 
+Ba:
+  number: 56
+  name: Barium
+  std_weight: 137.33
+
 La:
   number: 57
   name: Lanthanum
   std_weight: 138.91
+
+Sm:
+  number: 62
+  name: Samarium
+  std_weight: 150.36
 
 Gd:
   number: 64
