@@ -36,7 +36,7 @@ except ImportError:
         NUMEXPR_AVAILABLE = False
 
 
-def comparison_array(molecule, diameter=8, size=30,
+def comparison_array(molecule, diameter=8, size=40,
                      ignore_hydrogen=True, timeout=1):
     """ Generate comparison array
     Comparison array consists of node pairs in the graph and a collater.
@@ -93,20 +93,20 @@ def comparison_array(molecule, diameter=8, size=30,
     # interger -> index pair reconverter
     int_to_node = {v: k for k, v in node_to_int.items()}
     arr = []
-    matrix = nx.Graph()
+    edges = []
     for ui, ua in g.nodes(data=True):
         r = _reachables(g, ui, diameter, size)
         for vi, d in r.items():
             if not d:
                 continue
-            matrix.add_edge(ui, vi)
+            edges.append((ui, vi))
             code = (d << 18 | ua["type"]) << 18 | g.node[vi]["type"]
             arr.append((ui, vi, code))
-    cliques, elapsed = find_cliques(matrix, timeout=timeout)
-    if elapsed > timeout:
+    fcres = find_cliques(g.nodes(), edges, timeout=timeout)
+    if fcres["timeout"]:
         raise RuntimeError("Max fragment determination has timed out")
-    max_size = len(max(cliques, key=len, default=[]))
-    return arr, max_size, int_to_node, round(elapsed, 5)
+    max_size = len(fcres["max_clique"])
+    return arr, max_size, int_to_node, fcres
 
 
 def _reachables(G, root, max_dist, max_size):
@@ -132,7 +132,7 @@ def _reachables(G, root, max_dist, max_size):
 
 
 def comparison_graph_py(arr1, arr2):
-    """ Generate comparison graph
+    """ DEPRECATED: Generate comparison graph
     Comparison graph is a modular product of molecule edges
     """
     # timeout is not implemented
@@ -175,15 +175,29 @@ class McsdrGls(object):
         self.map1 = arr1[2]
         self.map2 = arr2[2]
         self.max_clique = []
-        self.cg_elapsed = 0
-        self.cl_elapsed = 0
+        self.status = {
+            "cg_elapsed": 0,
+            "cg_exceed_size_limit": False,
+            "fc_elapsed": 0,
+            "fc_timeout": False,
+            "total_elapsed": 0,
+            "valid": False
+        }
         if (arr1[0] and arr2[0]):
-            cg, elapsed = comparison_graph(arr1[0], arr2[0], timeout=timeout)
-            rest = timeout - elapsed
-            cliques, elapsed2 = find_cliques(cg, timeout=rest)
-            self.max_clique = max(cliques, key=len, default=[])
-            self.cg_elapsed = elapsed
-            self.cl_elapsed = elapsed2
+            cgres = comparison_graph(arr1[0], arr2[0], size_limit=1000000)
+            print(len(cgres["edges"]))
+            rest = timeout - cgres["elapsed_time"]
+            fcres = find_cliques(
+                cgres["decoder"].keys(), cgres["edges"], timeout=rest)
+            self.max_clique = fcres["max_clique"]
+            self.status["cg_elapsed"] = round(cgres["elapsed_time"], 5)
+            self.status["cg_exceed_size_limit"] = cgres["exceed_size_limit"]
+            self.status["fc_elapsed"] = round(fcres["elapsed_time"], 5)
+            self.status["fc_timeout"] = fcres["timeout"]
+            self.status["total_elapsed"] = round(
+                cgres["elapsed_time"] + fcres["elapsed_time"], 5)
+            self.status["valid"] = not (
+                cgres["exceed_size_limit"] or fcres["timeout"])
 
     def edge_count(self):
         return len(self.max_clique)
@@ -210,11 +224,7 @@ class McsdrGls(object):
         return new_mol
 
     def exec_time(self):
-        return {
-            "comparison_graph": round(self.cg_elapsed, 5),
-            "find_cliques": round(self.cl_elapsed, 5),
-            "total": round(self.cg_elapsed + self.cl_elapsed, 5)
-        }
+        return self.status
 
 
 def from_array(arr1, arr2, timeout=10):
