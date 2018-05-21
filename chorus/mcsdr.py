@@ -175,7 +175,7 @@ class McsdrGls(object):
         self.map1 = arr1[2]
         self.map2 = arr2[2]
         self.max_clique = []
-        self.status = {
+        self.perf = {
             "cg_elapsed": 0,
             "cg_exceed_size_limit": False,
             "fc_elapsed": 0,
@@ -185,18 +185,17 @@ class McsdrGls(object):
         }
         if (arr1[0] and arr2[0]):
             cgres = comparison_graph(arr1[0], arr2[0], size_limit=1000000)
-            print(len(cgres["edges"]))
             rest = timeout - cgres["elapsed_time"]
             fcres = find_cliques(
                 cgres["decoder"].keys(), cgres["edges"], timeout=rest)
             self.max_clique = fcres["max_clique"]
-            self.status["cg_elapsed"] = round(cgres["elapsed_time"], 5)
-            self.status["cg_exceed_size_limit"] = cgres["exceed_size_limit"]
-            self.status["fc_elapsed"] = round(fcres["elapsed_time"], 5)
-            self.status["fc_timeout"] = fcres["timeout"]
-            self.status["total_elapsed"] = round(
+            self.perf["cg_elapsed"] = round(cgres["elapsed_time"], 5)
+            self.perf["cg_exceed_size_limit"] = cgres["exceed_size_limit"]
+            self.perf["fc_elapsed"] = round(fcres["elapsed_time"], 5)
+            self.perf["fc_timeout"] = fcres["timeout"]
+            self.perf["total_elapsed"] = round(
                 cgres["elapsed_time"] + fcres["elapsed_time"], 5)
-            self.status["valid"] = not (
+            self.perf["valid"] = not (
                 cgres["exceed_size_limit"] or fcres["timeout"])
 
     def edge_count(self):
@@ -222,9 +221,6 @@ class McsdrGls(object):
         for a in atoms:
             new_mol.add_atom(a, mol1.atom(a))
         return new_mol
-
-    def exec_time(self):
-        return self.status
 
 
 def from_array(arr1, arr2, timeout=10):

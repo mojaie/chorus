@@ -67,7 +67,7 @@ def find_cliques(nodes, edges, double timeout):
         "timeout": False
     }
     if len(nodes) == 0:
-        return result, 0
+        return result
     cdef clock_t t0 = clock()
     cdef clock_t expire = t0 + <clock_t>(timeout * CLOCKS_PER_SEC)
     cdef int i, u, q, l
