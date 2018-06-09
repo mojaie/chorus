@@ -13,13 +13,14 @@ from libc.time cimport clock_t, clock, CLOCKS_PER_SEC
 
 
 @cython.cdivision(True)
-def comparison_graph(arr1, arr2, int size_limit):
+def comparison_graph(arr1, arr2, double timeout):
     cdef clock_t t0 = clock()
+    cdef clock_t expire = t0 + <clock_t>(timeout * CLOCKS_PER_SEC)
     result = {
         "edges": [],
         "decoder": {},
         "elapsed_time": 0,
-        "exceed_size_limit": False
+        "timeout": False
     }
     u1a, v1a, c1a = zip(*arr1)
     u2a, v2a, c2a = zip(*arr2)
@@ -46,8 +47,8 @@ def comparison_graph(arr1, arr2, int size_limit):
                     encoder[node2] = len(encoder)
                 idx2 = encoder[node2]
                 result["edges"].append((idx1, idx2))
-                if len(result["edges"]) >= size_limit:
-                    result["exceed_size_limit"] = True
+                if clock() >= expire:
+                    result["timeout"] = True
                     break
         else:
             continue
@@ -60,7 +61,6 @@ def comparison_graph(arr1, arr2, int size_limit):
 @cython.cdivision(True)
 def find_cliques(nodes, edges, double timeout):
     # Based on networkX v2.1
-    # TODO: slower???
     result = {
         "max_clique": [],
         "elapsed_time": 0,

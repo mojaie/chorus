@@ -14,6 +14,8 @@ and for common substructure mapping
 
 """
 
+import time
+
 import networkx as nx
 import numpy as np
 
@@ -36,8 +38,7 @@ except ImportError:
         NUMEXPR_AVAILABLE = False
 
 
-def comparison_array(molecule, diameter=8, size=40,
-                     ignore_hydrogen=True, timeout=1):
+def comparison_array(molecule, diameter=8, ignore_hydrogen=True, timeout=5):
     """ Generate comparison array
     Comparison array consists of node pairs in the graph and a collater.
     42 bit collater
@@ -47,29 +48,34 @@ def comparison_array(molecule, diameter=8, size=40,
                 7 bit of atom number (0-127)
                 2 bit of atom pi(0-3)
 
-
+    Reference:
     [Sheridan, R.P. and Miller, M.D., J. Chem. Inf. Comput. Sci. 38 (1998) 915]
 
-    Using possible_path_length instead of shortest_path_length
-    and find intersection of the distance set each other,
-    it is possible to detect roundabout matching path.
-    Therefore, exact graph isomorphism can be determined.
-    However, set intersection is too costful to do
-    in spite of a trivial improvement.
-
     Args:
-        mol: Compound
-        cutoff: more distant connection than the value is no longer used
-                for comparison matrix graph due to performance reason.
+        molecule(chorus.model.graphmol.Compound):  molecule object
+        diameter(int): diameter parameter of MCS-DR
+        ignore_hydrogen(bool): ignore all hydrogens (implicit and explicit)
+        timeout(float): timeout of maximum clique detection in seconds
 
     Returns:
-        arr(list): comparison array. list of tuple (node1, node2, collater)
-        max_mcs(int): maximum size of possible mcs
-        int_to_node(dict): int -> node index pair reconverter dict
+        dict of the result. array: comparison_array, max_size: max fragment
+        size of Glaph-based local similarity, int_to_node: dict of line graph
+        node index to original bond in tuple of the atom indices, elapsed_time:
+        elapsed time, timeout: underwent timeout or not
     Throws:
         ValueError: if len(mol) < 3
     """
     molecule.require("Valence")
+    res = {
+        "array": [],
+        "max_size": 0,
+        "int_to_node": {},
+        "elapsed_time": 0,
+        "valid": False
+    }
+    if len(molecule) < 3:
+        return res
+    start_time = time.perf_counter()
     mol = molutil.clone(molecule)
     if ignore_hydrogen:
         mol = molutil.make_Hs_implicit(mol)
@@ -91,27 +97,24 @@ def comparison_array(molecule, diameter=8, size=40,
     # convert node index pair to integer expression
     g = nx.relabel_nodes(g, node_to_int)
     # interger -> index pair reconverter
-    int_to_node = {v: k for k, v in node_to_int.items()}
-    arr = []
+    res["int_to_node"] = {v: k for k, v in node_to_int.items()}
     edges = []
     for ui, ua in g.nodes(data=True):
-        r = _reachables(g, ui, diameter, size)
+        r = _reachables(g, ui, diameter)
         for vi, d in r.items():
             if not d:
                 continue
             edges.append((ui, vi))
             code = (d << 18 | ua["type"]) << 18 | g.node[vi]["type"]
-            arr.append((ui, vi, code))
+            res["array"].append((ui, vi, code))
     fcres = find_cliques(g.nodes(), edges, timeout=timeout)
-    if fcres["timeout"]:
-        raise RuntimeError("Max fragment determination has timed out")
-    max_size = len(fcres["max_clique"])
-    return arr, max_size, int_to_node, fcres
+    res["max_size"] = len(fcres["max_clique"])
+    res["elapsed_time"] = time.perf_counter() - start_time
+    res["valid"] = not fcres["timeout"]
+    return res
 
 
-def _reachables(G, root, max_dist, max_size):
-    # TODO: is the BFS tree deterministic ?
-    # TODO: complete exploration of the started level even if max_size exceeded
+def _reachables(G, root, max_dist):
     visited = {root: 0}
     nbrs = G[root]
     for d in range(max_dist):
@@ -123,9 +126,6 @@ def _reachables(G, root, max_dist, max_size):
             if n not in visited:
                 visited[n] = d + 1
                 new_nbrs.update(G[n])
-            if len(visited) == max_size:
-                # exceed size limit
-                return visited
         nbrs = new_nbrs
     # exceed dist limit
     return visited
@@ -169,34 +169,32 @@ if not CYTHON_AVAILABLE:
 
 
 class McsdrGls(object):
-    def __init__(self, arr1, arr2, timeout):
-        self.max1 = arr1[1]
-        self.max2 = arr2[1]
-        self.map1 = arr1[2]
-        self.map2 = arr2[2]
+    def __init__(self, arr1, arr2, timeout=10):
+        self.max1 = arr1["max_size"]
+        self.max2 = arr2["max_size"]
+        self.map1 = arr1["int_to_node"]
+        self.map2 = arr2["int_to_node"]
         self.max_clique = []
         self.perf = {
-            "cg_elapsed": 0,
-            "cg_exceed_size_limit": False,
-            "fc_elapsed": 0,
-            "fc_timeout": False,
-            "total_elapsed": 0,
-            "valid": False
+            "arr1_time": round(arr1["elapsed_time"], 5),
+            "arr2_time": round(arr2["elapsed_time"], 5),
+            "mod_product_time": None,
+            "max_clique_time": None,
+            "valid": False,
         }
-        if (arr1[0] and arr2[0]):
-            cgres = comparison_graph(arr1[0], arr2[0], size_limit=1000000)
-            rest = timeout - cgres["elapsed_time"]
-            fcres = find_cliques(
-                cgres["decoder"].keys(), cgres["edges"], timeout=rest)
-            self.max_clique = fcres["max_clique"]
-            self.perf["cg_elapsed"] = round(cgres["elapsed_time"], 5)
-            self.perf["cg_exceed_size_limit"] = cgres["exceed_size_limit"]
-            self.perf["fc_elapsed"] = round(fcres["elapsed_time"], 5)
-            self.perf["fc_timeout"] = fcres["timeout"]
-            self.perf["total_elapsed"] = round(
-                cgres["elapsed_time"] + fcres["elapsed_time"], 5)
-            self.perf["valid"] = not (
-                cgres["exceed_size_limit"] or fcres["timeout"])
+        if not (arr1["array"] and arr2["array"]) or not timeout:
+            return
+        cgout = timeout / 2  # TODO: empirical
+        cgres = comparison_graph(arr1["array"], arr2["array"], timeout=cgout)
+        self.perf["mod_product_time"] = round(cgres["elapsed_time"], 5)
+        rest = timeout - cgres["elapsed_time"]
+        fcres = find_cliques(
+            cgres["decoder"].keys(), cgres["edges"], timeout=rest)
+        self.max_clique = fcres["max_clique"]
+        self.perf["max_clique_time"] = round(fcres["elapsed_time"], 5)
+        if arr1["valid"] and arr2["valid"] \
+                and not cgres["timeout"] and not fcres["timeout"]:
+            self.perf["valid"] = True
 
     def edge_count(self):
         return len(self.max_clique)
@@ -223,11 +221,23 @@ class McsdrGls(object):
         return new_mol
 
 
-def from_array(arr1, arr2, timeout=10):
+def from_array(arr1, arr2, timeout=10, gls_cutoff=None, edge_cutoff=None):
+    sm, bg = sorted((arr1["max_size"], arr2["max_size"]))
+    if not sm:
+        return McsdrGls(arr1, arr2, timeout=0)
+    if gls_cutoff is not None and gls_cutoff > sm / bg:
+        return McsdrGls(arr1, arr2, timeout=0)
+    if edge_cutoff is not None and edge_cutoff > sm:
+        return McsdrGls(arr1, arr2, timeout=0)
     return McsdrGls(arr1, arr2, timeout)
 
 
-def from_mol(mol1, mol2, timeout=10):
-    arr1 = comparison_array(mol1)
-    arr2 = comparison_array(mol2)
-    return from_array(arr1, arr2, timeout)
+def from_mol(mol1, mol2, diameter=8, ignore_hydrogen=True,
+             timeout=10, arr_timeout=2):
+    arr1 = comparison_array(mol1, diameter=diameter,
+                            ignore_hydrogen=ignore_hydrogen,
+                            timeout=arr_timeout)
+    arr2 = comparison_array(mol2, diameter=diameter,
+                            ignore_hydrogen=ignore_hydrogen,
+                            timeout=arr_timeout)
+    return McsdrGls(arr1, arr2, timeout)
