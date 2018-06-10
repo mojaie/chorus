@@ -38,24 +38,6 @@ except ImportError:
         NUMEXPR_AVAILABLE = False
 
 
-def preprocess(mol, ignore_hydrogen):
-    if ignore_hydrogen:
-        m = molutil.make_Hs_implicit(mol)  # clone
-    # Ignore salt, water
-    remover.remove_salt(m)
-    remover.remove_water(m)
-    # multivalent coordinated metals notably affect the performance
-    remover.remove_coordinated_metal(m)
-    return m
-
-
-def node_desc(atom1, atom2):
-    a1t = atom1.number << 2 | atom1.pi
-    a2t = atom2.number << 2 | atom2.pi
-    pair = sorted((a1t, a2t))
-    return pair[0] << 9 | pair[1]
-
-
 def reachables(G, root, max_dist):
     visited = {root: 0}
     nbrs = G[root]
@@ -73,35 +55,8 @@ def reachables(G, root, max_dist):
     return visited
 
 
-def edge_gen(G, diam):
-    for u in G.nodes:
-        r = reachables(G, u, diam)
-        del r[u]
-        for v, d in r.items():
-            attr = {
-                "dist": d,
-                "umol": G.nodes[u]["type"],
-                "vmol": G.nodes[v]["type"]
-            }
-            yield (u, v, attr)
-
-
-def edge_desc(attr):
-    return (attr["dist"] << 18 | attr["umol"]) << 18 | attr["vmol"]
-
-
-def comparison_array(mol, diameter=8, ignore_hydrogen=True, timeout=5):
-    """ Generate comparison array
-    Comparison array consists of node pairs in the graph and a collater.
-    42 bit collater
-        6 bit of distance (0-31)
-        18 bit of bond attribute x2
-            9 bit of atom attribute x 2
-                7 bit of atom number (0-127)
-                2 bit of atom pi(0-3)
-
-    Reference:
-    [Sheridan, R.P. and Miller, M.D., J. Chem. Inf. Comput. Sci. 38 (1998) 915]
+class DescriptorArray(object):
+    """ MCS-DR descriptor array
 
     Args:
         molecule(chorus.model.graphmol.Compound):  molecule object
@@ -114,41 +69,80 @@ def comparison_array(mol, diameter=8, ignore_hydrogen=True, timeout=5):
         size of Glaph-based local similarity, int_to_node: dict of line graph
         node index to original bond in tuple of the atom indices, elapsed_time:
         elapsed time, timeout: underwent timeout or not
-    Throws:
-        ValueError: if len(mol) < 3
     """
-    mol.require("Valence")
-    res = {
-        "array": [],
-        "max_size": 0,
-        "int_to_node": {},
-        "elapsed_time": 0,
-        "valid": False
-    }
-    if len(mol) < 3:
-        return res
-    start_time = time.perf_counter()
-    mol = preprocess(mol, ignore_hydrogen)
-    # Generate line graph and reindexing
-    lg = nx.line_graph(mol.graph)
-    node_to_int = {}
-    for i, ln in enumerate(lg.nodes()):
-        node_to_int[ln] = i
-        lg.nodes[ln]["type"] = node_desc(mol.atom(ln[0]), mol.atom(ln[1]))
-    int_to_node = {v: k for k, v in node_to_int.items()}
-    g = nx.relabel_nodes(lg, node_to_int)
-    # Edges
-    edges = []
-    for u, v, attr in edge_gen(g, diameter):
-        edges.append((u, v))
-        res["array"].append((u, v, edge_desc(attr)))
-    # Max fragment size determination
-    fcres = find_cliques(g.nodes(), edges, timeout=timeout)
-    res["int_to_node"] = int_to_node
-    res["max_size"] = len(fcres["max_clique"])
-    res["elapsed_time"] = time.perf_counter() - start_time
-    res["valid"] = not fcres["timeout"]
-    return res
+    def __init__(self, mol, diameter=8, ignore_hydrogen=True, timeout=5):
+        mol.require("Valence")
+        self.diam = diameter
+        self.ignoreh = ignore_hydrogen
+        self.timeout = timeout
+        # Results
+        self.array = []
+        self.max_size = 0
+        self.int_to_node = {}
+        self.elapsed_time = 0
+        self.valid = False
+        if len(mol) < 3:
+            return
+        start_time = time.perf_counter()
+        self.mol = mol
+        self.preprocess()
+        # Generate line graph and reindexing
+        lg = nx.line_graph(self.mol.graph)
+        node_to_int = {}
+        for i, ln in enumerate(lg.nodes()):
+            node_to_int[ln] = i
+            lg.nodes[ln]["type"] = self.node_desc(ln)
+        self.int_to_node = {v: k for k, v in node_to_int.items()}
+        self.graph = nx.relabel_nodes(lg, node_to_int)
+        # Edges
+        edges = []
+        for u, v, attr in self.edge_gen():
+            edges.append((u, v))
+            self.array.append((u, v, self.edge_desc(attr)))
+        # Max fragment size determination
+        fcres = find_cliques(self.graph.nodes(), edges, timeout=timeout)
+        self.max_size = len(fcres["max_clique"])
+        self.elapsed_time = time.perf_counter() - start_time
+        self.valid = not fcres["timeout"]
+
+    def preprocess(self):
+        if self.ignoreh:
+            self.mol = molutil.make_Hs_implicit(self.mol)  # clone
+        # Ignore salt, water
+        remover.remove_salt(self.mol)
+        remover.remove_water(self.mol)
+        # multivalent coordinated metals notably affect the performance
+        remover.remove_coordinated_metal(self.mol)
+
+    def node_desc(self, atoms):
+        """default 9 bits descriptor
+        7 bits of atomic number (0-127) and 2 bits of pi electrons (0-3)
+        """
+        a1 = self.mol.atom(atoms[0])
+        a2 = self.mol.atom(atoms[1])
+        a1t = a1.number << 2 | a1.pi
+        a2t = a2.number << 2 | a2.pi
+        pair = sorted((a1t, a2t))
+        return pair[0] << 9 | pair[1]
+
+    def edge_gen(self):
+        for u in self.graph.nodes:
+            r = reachables(self.graph, u, self.diam)
+            del r[u]
+            for v, d in r.items():
+                attr = {
+                    "dist": d,
+                    "umol": self.graph.nodes[u]["type"],
+                    "vmol": self.graph.nodes[v]["type"]
+                }
+                yield (u, v, attr)
+
+    def edge_desc(self, attr):
+        """default 42 bits descriptor
+        6 bits of distance descriptor (0-31)
+        18 bits of bond (9 bits of atom x2) x2
+        """
+        return (attr["dist"] << 18 | attr["umol"]) << 18 | attr["vmol"]
 
 
 def comparison_graph_py(arr1, arr2):
@@ -190,29 +184,29 @@ if not CYTHON_AVAILABLE:
 
 class McsdrGls(object):
     def __init__(self, arr1, arr2, timeout=10):
-        self.max1 = arr1["max_size"]
-        self.max2 = arr2["max_size"]
-        self.map1 = arr1["int_to_node"]
-        self.map2 = arr2["int_to_node"]
+        self.max1 = arr1.max_size
+        self.max2 = arr2.max_size
+        self.map1 = arr1.int_to_node
+        self.map2 = arr2.int_to_node
         self.max_clique = []
         self.perf = {
-            "arr1_time": round(arr1["elapsed_time"], 5),
-            "arr2_time": round(arr2["elapsed_time"], 5),
+            "arr1_time": round(arr1.elapsed_time, 5),
+            "arr2_time": round(arr2.elapsed_time, 5),
             "mod_product_time": None,
             "max_clique_time": None,
             "valid": False,
         }
-        if not (arr1["array"] and arr2["array"]) or not timeout:
+        if not (arr1.array and arr2.array) or not timeout:
             return
         cgout = timeout / 2  # TODO: empirical
-        cgres = comparison_graph(arr1["array"], arr2["array"], timeout=cgout)
+        cgres = comparison_graph(arr1.array, arr2.array, timeout=cgout)
         self.perf["mod_product_time"] = round(cgres["elapsed_time"], 5)
         rest = timeout - cgres["elapsed_time"]
         fcres = find_cliques(
             cgres["decoder"].keys(), cgres["edges"], timeout=rest)
         self.max_clique = fcres["max_clique"]
         self.perf["max_clique_time"] = round(fcres["elapsed_time"], 5)
-        if arr1["valid"] and arr2["valid"] \
+        if arr1.valid and arr2.valid \
                 and not cgres["timeout"] and not fcres["timeout"]:
             self.perf["valid"] = True
 
@@ -242,7 +236,7 @@ class McsdrGls(object):
 
 
 def from_array(arr1, arr2, timeout=10, gls_cutoff=None, edge_cutoff=None):
-    sm, bg = sorted((arr1["max_size"], arr2["max_size"]))
+    sm, bg = sorted((arr1.max_size, arr2.max_size))
     if not sm:
         return McsdrGls(arr1, arr2, timeout=0)
     if gls_cutoff is not None and gls_cutoff > sm / bg:
@@ -254,10 +248,10 @@ def from_array(arr1, arr2, timeout=10, gls_cutoff=None, edge_cutoff=None):
 
 def from_mol(mol1, mol2, diameter=8, ignore_hydrogen=True,
              timeout=10, arr_timeout=2):
-    arr1 = comparison_array(mol1, diameter=diameter,
-                            ignore_hydrogen=ignore_hydrogen,
-                            timeout=arr_timeout)
-    arr2 = comparison_array(mol2, diameter=diameter,
-                            ignore_hydrogen=ignore_hydrogen,
-                            timeout=arr_timeout)
+    arr1 = DescriptorArray(mol1, diameter=diameter,
+                           ignore_hydrogen=ignore_hydrogen,
+                           timeout=arr_timeout)
+    arr2 = DescriptorArray(mol2, diameter=diameter,
+                           ignore_hydrogen=ignore_hydrogen,
+                           timeout=arr_timeout)
     return McsdrGls(arr1, arr2, timeout)
