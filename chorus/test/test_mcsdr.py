@@ -19,10 +19,10 @@ class TestMCS(unittest.TestCase):
     def test_reachables(self):
         g = nx.Graph([(1, 2), (1, 3), (1, 4), (2, 5), (5, 6),
                      (6, 7), (3, 8), (8, 9), (4, 9)])
-        self.assertEqual(mcsdr._reachables(g, 1, 100),
+        self.assertEqual(mcsdr.reachables(g, 1, 100),
                          {1: 0, 2: 1, 3: 1, 4: 1, 5: 2,
                          6: 3, 7: 4, 8: 2, 9: 2})
-        self.assertEqual(mcsdr._reachables(g, 1, 2),
+        self.assertEqual(mcsdr.reachables(g, 1, 2),
                          {1: 0, 2: 1, 3: 1, 4: 1, 5: 2, 8: 2, 9: 2})
 
     def test_mcsdr1(self):

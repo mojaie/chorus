@@ -38,7 +38,59 @@ except ImportError:
         NUMEXPR_AVAILABLE = False
 
 
-def comparison_array(molecule, diameter=8, ignore_hydrogen=True, timeout=5):
+def preprocess(mol, ignore_hydrogen):
+    if ignore_hydrogen:
+        m = molutil.make_Hs_implicit(mol)  # clone
+    # Ignore salt, water
+    remover.remove_salt(m)
+    remover.remove_water(m)
+    # multivalent coordinated metals notably affect the performance
+    remover.remove_coordinated_metal(m)
+    return m
+
+
+def node_desc(atom1, atom2):
+    a1t = atom1.number << 2 | atom1.pi
+    a2t = atom2.number << 2 | atom2.pi
+    pair = sorted((a1t, a2t))
+    return pair[0] << 9 | pair[1]
+
+
+def reachables(G, root, max_dist):
+    visited = {root: 0}
+    nbrs = G[root]
+    for d in range(max_dist):
+        if not nbrs:
+            # all nodes are reachable
+            return visited
+        new_nbrs = {}
+        for n in nbrs:
+            if n not in visited:
+                visited[n] = d + 1
+                new_nbrs.update(G[n])
+        nbrs = new_nbrs
+    # exceed dist limit
+    return visited
+
+
+def edge_gen(G, diam):
+    for u in G.nodes:
+        r = reachables(G, u, diam)
+        del r[u]
+        for v, d in r.items():
+            attr = {
+                "dist": d,
+                "umol": G.nodes[u]["type"],
+                "vmol": G.nodes[v]["type"]
+            }
+            yield (u, v, attr)
+
+
+def edge_desc(attr):
+    return (attr["dist"] << 18 | attr["umol"]) << 18 | attr["vmol"]
+
+
+def comparison_array(mol, diameter=8, ignore_hydrogen=True, timeout=5):
     """ Generate comparison array
     Comparison array consists of node pairs in the graph and a collater.
     42 bit collater
@@ -65,7 +117,7 @@ def comparison_array(molecule, diameter=8, ignore_hydrogen=True, timeout=5):
     Throws:
         ValueError: if len(mol) < 3
     """
-    molecule.require("Valence")
+    mol.require("Valence")
     res = {
         "array": [],
         "max_size": 0,
@@ -73,62 +125,30 @@ def comparison_array(molecule, diameter=8, ignore_hydrogen=True, timeout=5):
         "elapsed_time": 0,
         "valid": False
     }
-    if len(molecule) < 3:
+    if len(mol) < 3:
         return res
     start_time = time.perf_counter()
-    mol = molutil.clone(molecule)
-    if ignore_hydrogen:
-        mol = molutil.make_Hs_implicit(mol)
-    # Ignore salt, water
-    remover.remove_salt(mol)
-    remover.remove_water(mol)
-    # multivalent coordinated metals notably affect the performance
-    remover.remove_coordinated_metal(mol)
-    g = nx.line_graph(mol.graph)
+    mol = preprocess(mol, ignore_hydrogen)
+    # Generate line graph and reindexing
+    lg = nx.line_graph(mol.graph)
     node_to_int = {}
-    for i, e in enumerate(g.nodes()):
-        node_to_int[e] = i
-        a1 = mol.atom(e[0])
-        a2 = mol.atom(e[1])
-        a1t = a1.number << 2 | a1.pi
-        a2t = a2.number << 2 | a2.pi
-        pair = sorted((a1t, a2t))
-        g.node[e]["type"] = pair[0] << 9 | pair[1]
-    # convert node index pair to integer expression
-    g = nx.relabel_nodes(g, node_to_int)
-    # interger -> index pair reconverter
-    res["int_to_node"] = {v: k for k, v in node_to_int.items()}
+    for i, ln in enumerate(lg.nodes()):
+        node_to_int[ln] = i
+        lg.nodes[ln]["type"] = node_desc(mol.atom(ln[0]), mol.atom(ln[1]))
+    int_to_node = {v: k for k, v in node_to_int.items()}
+    g = nx.relabel_nodes(lg, node_to_int)
+    # Edges
     edges = []
-    for ui, ua in g.nodes(data=True):
-        r = _reachables(g, ui, diameter)
-        for vi, d in r.items():
-            if not d:
-                continue
-            edges.append((ui, vi))
-            code = (d << 18 | ua["type"]) << 18 | g.node[vi]["type"]
-            res["array"].append((ui, vi, code))
+    for u, v, attr in edge_gen(g, diameter):
+        edges.append((u, v))
+        res["array"].append((u, v, edge_desc(attr)))
+    # Max fragment size determination
     fcres = find_cliques(g.nodes(), edges, timeout=timeout)
+    res["int_to_node"] = int_to_node
     res["max_size"] = len(fcres["max_clique"])
     res["elapsed_time"] = time.perf_counter() - start_time
     res["valid"] = not fcres["timeout"]
     return res
-
-
-def _reachables(G, root, max_dist):
-    visited = {root: 0}
-    nbrs = G[root]
-    for d in range(max_dist):
-        if not nbrs:
-            # all nodes are reachable
-            return visited
-        new_nbrs = {}
-        for n in nbrs:
-            if n not in visited:
-                visited[n] = d + 1
-                new_nbrs.update(G[n])
-        nbrs = new_nbrs
-    # exceed dist limit
-    return visited
 
 
 def comparison_graph_py(arr1, arr2):
