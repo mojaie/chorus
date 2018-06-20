@@ -102,7 +102,7 @@ class DescriptorArray(object):
         # Max fragment size determination
         fcres = find_cliques(self.graph.nodes(), edges, timeout=timeout)
         self.max_size = len(fcres["max_clique"])
-        self.elapsed_time = time.perf_counter() - start_time
+        self.elapsed_time = round(time.perf_counter() - start_time, 7)
         self.valid = not fcres["timeout"]
 
     def preprocess(self):
@@ -184,31 +184,37 @@ if not CYTHON_AVAILABLE:
 
 class McsdrGls(object):
     def __init__(self, arr1, arr2, timeout=10):
+        # DescriptorArray
         self.max1 = arr1.max_size
         self.max2 = arr2.max_size
         self.map1 = arr1.int_to_node
         self.map2 = arr2.int_to_node
+        self.arr1_time = arr1.elapsed_time
+        self.arr2_time = arr2.elapsed_time
+        # Results
         self.max_clique = []
-        self.perf = {
-            "arr1_time": round(arr1.elapsed_time, 5),
-            "arr2_time": round(arr2.elapsed_time, 5),
-            "mod_product_time": None,
-            "max_clique_time": None,
-            "valid": False,
-        }
-        if not (arr1.array and arr2.array) or not timeout:
+        self.mod_product_time = None
+        self.max_clique_time = None
+        self.valid = False
+        self.elapsed_time = 0
+        if not (arr1.array and arr2.array) or timeout <= 0:
             return
+        start_time = time.perf_counter()
         cgout = timeout / 2  # TODO: empirical
         cgres = comparison_graph(arr1.array, arr2.array, timeout=cgout)
-        self.perf["mod_product_time"] = round(cgres["elapsed_time"], 5)
+        self.mod_product_time = round(cgres["elapsed_time"], 7)
         rest = timeout - cgres["elapsed_time"]
+        if rest <= 0:
+            self.elapsed_time = round(time.perf_counter() - start_time, 7)
+            return
         fcres = find_cliques(
             cgres["decoder"].keys(), cgres["edges"], timeout=rest)
         self.max_clique = fcres["max_clique"]
-        self.perf["max_clique_time"] = round(fcres["elapsed_time"], 5)
+        self.max_clique_time = round(fcres["elapsed_time"], 7)
         if arr1.valid and arr2.valid \
                 and not cgres["timeout"] and not fcres["timeout"]:
-            self.perf["valid"] = True
+            self.valid = True
+        self.elapsed_time = round(time.perf_counter() - start_time, 7)
 
     def edge_count(self):
         return len(self.max_clique)
@@ -254,4 +260,5 @@ def from_mol(mol1, mol2, diameter=8, ignore_hydrogen=True,
     arr2 = DescriptorArray(mol2, diameter=diameter,
                            ignore_hydrogen=ignore_hydrogen,
                            timeout=arr_timeout)
-    return McsdrGls(arr1, arr2, timeout)
+    rest = timeout - (arr1.elapsed_time + arr2.elapsed_time)
+    return McsdrGls(arr1, arr2, rest)
