@@ -1,0 +1,38 @@
+{
+  "setuppy": {
+    "name": "Chorus",
+    "version": "0.9.1",
+    "description": "Simple chemical structure modeling toolkit",
+    "url": "https://github.com/mojaie/chorus",
+    "author": "Seiji Matsuoka",
+    "author_email": "mojaie@aol.com",
+    "license": "MIT",
+    "classifiers": [
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Science/Research",
+        "Topic :: Scientific/Engineering :: Chemistry",
+        "Topic :: Scientific/Engineering :: Bio-Informatics",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7"
+    ],
+    "keywords": "molecule-modeling cheminformatics",
+    "python_requires": ">= 3.6",
+    "install_requires": ["numpy", "numexpr", "matplotlib", "networkx", "pyyaml"]
+  },
+  "metayaml": {
+    "package": {
+      "name": "chorus"
+    },
+    "source": {
+      "git_url": "../"
+    },
+    "requirements": {
+      "build": ["python", "cython", "setuptools"],
+      "run": ["python", "numpy", "numexpr", "matplotlib", "networkx", "pyyaml"]
+    },
+    "test": {"imports": "chorus"},
+    "about": {"license_file": "LICENSE"}
+  }
+}

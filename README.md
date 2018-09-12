@@ -75,7 +75,7 @@ Features (will never be implemented)
 API Documentation
 ------------------------
 
-https://mojaie.github.io/chorus
+https://chorus-docs.readthedocs.io/
 
 
 
@@ -91,4 +91,4 @@ See [chorus/resources/README.md](https://github.com/mojaie/chorus/tree/master/ch
 Copyright
 --------------
 
-(C) 2014-2017 Seiji Matsuoka
+(C) 2014-2018 Seiji Matsuoka

@@ -1,10 +1,15 @@
 #
-# (C) 2014-2017 Seiji Matsuoka
+# (C) 2014-2018 Seiji Matsuoka
 # Licensed under the MIT License (MIT)
 # http://opensource.org/licenses/MIT
 #
 
-import chorus
+import json
+import os
+
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, "../config.json"), "rt") as f:
+    VERSION = json.load(f)["setuppy"]["version"]
 
 
 def atom_block(mol):
@@ -85,7 +90,7 @@ def data_block(mol):
 def mol_block(mol, sdfile=True):
     lines = [
         "",
-        "Chorus version {}".format(chorus.VERSION),
+        "Chorus version {}".format(VERSION),
         ""
     ]
     chiral_flag = 0

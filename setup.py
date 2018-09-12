@@ -1,8 +1,25 @@
 
 from codecs import open
+import json
 from os import path
 from setuptools import setup, find_packages, Extension
 import sys
+
+
+here = path.abspath(path.dirname(__file__))
+
+with open(path.join(here, "config.json"), "rt") as f:
+    conf = json.load(f)
+
+# Generate meta.yaml
+metayaml = conf["metayaml"]
+metayaml["package"]["version"] = conf["setuppy"]["version"]
+metayaml["source"]["git_rev"] = conf["setuppy"]["version"]
+metayaml["about"]["home"] = conf["setuppy"]["url"]
+metayaml["about"]["license"] = conf["setuppy"]["license"]
+
+with open(path.join(here, "./conda-recipe/meta.yaml"), "wt") as f:
+    json.dump(metayaml, f)
 
 ignore_cython = False
 ext = None
@@ -23,39 +40,16 @@ except ImportError:
         print("Error: Cython is required.")
         sys.exit()
 
-here = path.abspath(path.dirname(__file__))
+# setup
+setup_dict = conf["setuppy"]
 with open(path.join(here, "README.md"), encoding="utf-8") as f:
-    long_description = f.read()
+    setup_dict["long_description"] = f.read()
 
+setup_dict["packages"] = find_packages(exclude=["chorus.test*"])
+setup_dict["package_data"] = {
+    "": ["*.yaml", "resources/test/*.mol", "resources/DrugBank/*.mol"]
+}
+setup_dict["ext_modules"] = [ext]
+setup_dict["cmdclass"] = {'build_ext': build_ext}
 
-setup(
-    name="Chorus",
-    version="0.9.0",
-    description="Simple chemical structure modeling toolkit",
-    long_description=long_description,
-    url="https://github.com/mojaie/chorus",
-    author="Seiji Matsuoka",
-    author_email="mojaie@aol.com",
-    license="MIT",
-    classifiers=[
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: Science/Research",
-        "Topic :: Scientific/Engineering :: Chemistry",
-        "Topic :: Scientific/Engineering :: Bio-Informatics",
-        "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6"
-    ],
-    keywords="molecule-modeling cheminformatics",
-    packages=find_packages(exclude=["chorus.test*"]),
-    package_data={
-        "": ["*.yaml", "resources/test/*.mol", "resources/DrugBank/*.mol"]
-    },
-    python_requires=">=3.5",
-    install_requires=[
-        "numpy", "numexpr", "matplotlib", "networkx", "pyyaml"
-    ],
-    ext_modules=[ext],
-    cmdclass={'build_ext': build_ext}
-)
+setup(**setup_dict)
