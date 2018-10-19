@@ -31,9 +31,11 @@ class TestV2000Reader(unittest.TestCase):
         self.assertEqual(count, 1543)
 
     def test_parse_options(self):
-        # Space should be accepted
-        parsed = reader.optional_data((">  <hoge fuga>", "piyo"))
-        self.assertEqual(parsed, {"hoge fuga": "piyo"})
+        # Some inappropriate signs should be accepted for practical use
+        parsed = reader.optional_data((">  <hoge-fu=ga>", "piyo"))
+        self.assertEqual(parsed, {"hoge-fu=ga": "piyo"})
+        parsed = reader.optional_data((">  <hoge.fuga %>", "piyo"))
+        self.assertEqual(parsed, {"hoge.fuga %": "piyo"})
 
     def test_null(self):
         mol = reader.mol_from_text(MOL["null"])

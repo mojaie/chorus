@@ -14,6 +14,10 @@ from chorus import molutil
 import chorus.util.text as tx
 
 
+# Some inappropriate signs are accepted for practical use
+SDF_FIELD = re.compile(r">.*?<([\w -.%=]+)>")
+
+
 def inspect(lines):
     """Inspect SDFile list of string
 
@@ -22,7 +26,6 @@ def inspect(lines):
     """
     labels = set()
     count = 0
-    exp = re.compile(r">.*?<([\w ]+)>")  # Space should be accepted
     valid = False
     for line in lines:
         if line.startswith("M  END\n"):
@@ -31,7 +34,7 @@ def inspect(lines):
             count += 1
             valid = False
         else:
-            result = exp.match(line)
+            result = SDF_FIELD.match(line)
             if result:
                 labels.add(result.group(1))
     if valid:
@@ -60,9 +63,8 @@ def inspect_file(path):
 def optional_data(lines):
     """Parse SDFile data part into dict"""
     data = {}
-    exp = re.compile(r">.*?<([\w ]+)>")  # Space should be accepted
     for i, line in enumerate(lines):
-        result = exp.match(line)
+        result = SDF_FIELD.match(line)
         if result:
             data[result.group(1)] = lines[i + 1]
     return data
