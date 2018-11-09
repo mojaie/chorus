@@ -64,6 +64,12 @@ class TestMCS(unittest.TestCase):
         arr1 = mcsdr.DescriptorArray(mol1)
         arr2 = mcsdr.DescriptorArray(mol2)
         self.assertEqual(mcsdr.from_array(arr1, arr2).edge_count(), 2)
+        # TODO: pitfall in line graph
+        mol1 = smiles_to_compound("CO(C)(C)C")
+        mol2 = smiles_to_compound("OC(O)(O)O")
+        arr1 = mcsdr.DescriptorArray(mol1)
+        arr2 = mcsdr.DescriptorArray(mol2)
+        # self.assertEqual(mcsdr.from_array(arr1, arr2).edge_count(), 0)
 
     def test_timeout(self):
         mol = reader.mol_from_text(MOL["Buckminsterfullerene"])
