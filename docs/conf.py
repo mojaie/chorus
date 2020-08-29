@@ -53,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'chorus'
-copyright = '2014-2018, Seiji Matsuoka'
+copyright = '2014-2020, Seiji Matsuoka'
 author = 'Seiji Matsuoka'
 
 # The version info for the project you're documenting, acts as replacement for

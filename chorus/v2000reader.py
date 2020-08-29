@@ -15,7 +15,7 @@ import chorus.util.text as tx
 
 
 # Some inappropriate signs are accepted for practical use
-SDF_FIELD = re.compile(r">.*?<([\w -.%=]+)>")
+SDF_FIELD = re.compile(r">.*?<([\w -+.%=]+)>")
 
 
 def inspect(lines):

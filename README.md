@@ -15,6 +15,16 @@ Installation
 pip3 install chorus
 ```
 
+### Poetry
+
+```
+git clone https://github.com/mojaie/chorus.git
+cd chorus
+poetry install
+poetry run make build
+cd ../project
+poetry add ../chorus
+```
 
 ### Anaconda
 
